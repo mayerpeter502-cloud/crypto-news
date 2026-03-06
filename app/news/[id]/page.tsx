@@ -1,18 +1,19 @@
 import NewsContent from './NewsContent';
 import { Metadata } from 'next';
 
+// Выносим получение данных в надежную функцию на сервере
 async function getArticle(id: string) {
   try {
-    // Добавляем кэширование на 1 минуту, чтобы данные обновлялись
-    const res = await fetch(`https://min-api.cryptocompare.com/data/v2/news/?lang=EN`, { 
-      next: { revalidate: 60 } 
+    // Делаем запрос от имени сервера (CORS здесь не страшен)
+    const res = await fetch(`https://min-api.cryptocompare.com/data/v2/news/?lang=EN`, {
+      cache: 'no-store' // Всегда свежие данные
     });
     const data = await res.json();
     
-    // Сравниваем ID, приводя оба к строке — это решит проблему "Новость не найдена"
+    // Сравниваем ID как строки, чтобы избежать ошибок типизации
     return data.Data.find((a: any) => String(a.id) === String(id));
   } catch (e) {
-    console.error("Fetch error:", e);
+    console.error("Server Fetch Error:", e);
     return null;
   }
 }
@@ -24,12 +25,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
   return {
     title: article.title,
-    description: 'Читать подробнее на CryptoFlow',
     openGraph: {
       title: article.title,
-      description: article.body.substring(0, 100) + '...',
-      images: [{ url: article.imageurl }], 
+      description: 'Читать подробнее на CryptoFlow',
+      images: [article.imageurl], // Картинка для Telegram
       type: 'article',
+      url: `https://crypto-news-swart.vercel.app/news/${params.id}`
     },
     twitter: {
       card: 'summary_large_image',
@@ -41,6 +42,6 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 export default async function Page({ params }: { params: { id: string } }) {
   const article = await getArticle(params.id);
   
-  // Передаем статью в клиент. Если её нет, NewsContent покажет кнопку "На главную"
+  // Передаем статью в клиентский компонент. Дизайн берем из NewsContent
   return <NewsContent article={article} id={params.id} />;
 }
