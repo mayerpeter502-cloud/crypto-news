@@ -63,21 +63,26 @@ export default function Home() {
           </p>
           
           {/* КНОПКИ В ОДИН РЯД НА ВСЮ ШИРИНУ */}
-          <div className="flex w-full gap-2 mt-8">
-            {filters.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setCategory(f.id)}
-                className={`flex-1 py-3 px-1 rounded text-[10px] font-black uppercase tracking-wider transition-all border text-center whitespace-nowrap ${
-                  category === f.id 
-                  ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/20' 
-                  : 'bg-zinc-900 border-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300'
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
+<div className="flex w-full gap-2 mt-8">
+  {filters.map((f) => (
+    <button
+      key={f.id}
+      onClick={() => setCategory(f.id)}
+      className={`
+        flex-1 py-3 px-1 rounded text-[10px] font-black uppercase tracking-wider 
+        transition-all duration-200 border text-center whitespace-nowrap
+        cursor-pointer active:scale-95
+        ${
+          category === f.id 
+          ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/40' 
+          : 'bg-zinc-900 border-zinc-900 text-zinc-500 hover:border-orange-600/50 hover:text-white hover:bg-zinc-800'
+        }
+      `}
+    >
+      {f.label}
+    </button>
+  ))}
+</div>
         </div>
 
         {loading ? (
