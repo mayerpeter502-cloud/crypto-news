@@ -2,7 +2,7 @@
 
 // Пока у нас нет домена, используем заглушку. 
 // Когда купите домен, замените 'pulse-news.vercel.app' на ваш адрес.
-const SITE_URL = 'https://pulse-news.vercel.app'; 
+const SITE_URL = 'https://crypto-news-swart.vercel.app/'; 
 const TELEGRAM_TOKEN = '8613979794:AAEg7YrdqPBw1m76-YPWRAQ4QAenVKXtFvw';
 const TELEGRAM_CHAT_ID = '@pulse_news_hub';
 
