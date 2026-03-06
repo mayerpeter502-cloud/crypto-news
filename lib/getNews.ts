@@ -6,19 +6,20 @@ const SITE_URL = 'https://crypto-news-swart.vercel.app/';
 const TELEGRAM_TOKEN = '8613979794:AAEg7YrdqPBw1m76-YPWRAQ4QAenVKXtFvw';
 const TELEGRAM_CHAT_ID = '@pulse_news_hub';
 
-// lib/getNews.ts
 export async function sendToTelegram(title: string, id: string) {
   try {
     const mySiteUrl = `${SITE_URL}/news/${id}`; 
     
-    // Оставляем только заголовок и ссылку. 
-    // Telegram автоматически скроет текстовую ссылку и покажет только карточку.
-    const text = encodeURIComponent(`🔥 <b>${title}</b>\n\n${mySiteUrl}`);
+    // Используем невидимый символ (U+200B), чтобы спрятать ссылку.
+    // Это уберет синюю надпись со скрепкой и любые текстовые URL.
+    const text = encodeURIComponent(
+      `🔥 <b>${title}</b><a href="${mySiteUrl}">&#8203;</a>`
+    );
 
     const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?` +
       `chat_id=${TELEGRAM_CHAT_ID}&` +
       `text=${text}&` +
-      `parse_mode=HTML`; // Используем HTML для жирного шрифта
+      `parse_mode=HTML`;
     
     await fetch(tgUrl);
   } catch (e) {

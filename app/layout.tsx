@@ -9,18 +9,13 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-// app/layout.tsx
 export const metadata = {
-  // Этот заголовок будет отображаться в карточке Telegram вместо домена
-  title: 'CRYPTOFLOW | Market Pulse', 
-  description: 'Intelligence', // Короткое описание
-  icons: {
-    icon: '/favicon.ico',
-  },
-  // Добавляем OpenGraph данные специально для соцсетей и мессенджеров
+  // Это будет единственная надпись в карточке (вместо домена)
+  title: 'CRYPTOFLOW', 
+  description: ' ', // Ставим пробел, чтобы убрать "Market Intelligence" или "Aggregator"
   openGraph: {
-    title: 'CRYPTOFLOW | Market Pulse',
-    description: 'Market Intelligence',
+    title: 'CRYPTOFLOW',
+    description: ' ',
     siteName: 'CRYPTOFLOW',
   },
 };
