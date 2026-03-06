@@ -6,25 +6,19 @@ const SITE_URL = 'https://crypto-news-swart.vercel.app/';
 const TELEGRAM_TOKEN = '8613979794:AAEg7YrdqPBw1m76-YPWRAQ4QAenVKXtFvw';
 const TELEGRAM_CHAT_ID = '@pulse_news_hub';
 
+// lib/getNews.ts
 export async function sendToTelegram(title: string, id: string) {
   try {
     const mySiteUrl = `${SITE_URL}/news/${id}`; 
     
-    // Формируем текст сообщения
-    // Используем HTML разметку для более гибкого управления ссылками
-    const text = encodeURIComponent(
-      `🔥 <b>${title}</b>\n\n` +
-      `🔗 <a href="${mySiteUrl}">Читать полностью на CRYPTOFLOW | Market Pulse</a>`
-    );
+    // Оставляем только заголовок и ссылку. 
+    // Telegram автоматически скроет текстовую ссылку и покажет только карточку.
+    const text = encodeURIComponent(`🔥 <b>${title}</b>\n\n${mySiteUrl}`);
 
-    // Добавляем параметры:
-    // parse_mode=HTML — чтобы работали теги <b> и <a>
-    // link_preview_options — отключаем автоматическое превью, чтобы не было дублей
     const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?` +
       `chat_id=${TELEGRAM_CHAT_ID}&` +
       `text=${text}&` +
-      `parse_mode=HTML&` +
-      `disable_web_page_preview=false`; // Оставляем true, если хотим только ОДНО превью внизу
+      `parse_mode=HTML`; // Используем HTML для жирного шрифта
     
     await fetch(tgUrl);
   } catch (e) {
