@@ -10,11 +10,10 @@ export async function sendToTelegram(title: string, id: string) {
   try {
     const mySiteUrl = `${SITE_URL}/news/${id}`; 
     
-    // Используем невидимый символ (U+200B), чтобы спрятать ссылку.
-    // Это уберет синюю надпись со скрепкой и любые текстовые URL.
-    const text = encodeURIComponent(
-      `🔥 <b>${title}</b><a href="${mySiteUrl}">&#8203;</a>`
-    );
+    // Отправляем ТОЛЬКО невидимый символ с гиперссылкой.
+    // Это заставит Telegram генерировать только превью (карточку),
+    // не добавляя никакого текста или синих ссылок сверху.
+    const text = encodeURIComponent(`<a href="${mySiteUrl}">&#8203;</a>`);
 
     const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?` +
       `chat_id=${TELEGRAM_CHAT_ID}&` +
