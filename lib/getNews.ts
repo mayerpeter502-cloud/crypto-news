@@ -9,8 +9,22 @@ const TELEGRAM_CHAT_ID = '@pulse_news_hub';
 export async function sendToTelegram(title: string, id: string) {
   try {
     const mySiteUrl = `${SITE_URL}/news/${id}`; 
-    const text = encodeURIComponent(`🔥 *${title}*\n\n🔗 [Читать полностью на Pulse News](${mySiteUrl})`);
-    const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${text}&parse_mode=Markdown`;
+    
+    // Формируем текст сообщения
+    // Используем HTML разметку для более гибкого управления ссылками
+    const text = encodeURIComponent(
+      `🔥 <b>${title}</b>\n\n` +
+      `🔗 <a href="${mySiteUrl}">Читать полностью на CRYPTOFLOW | Market Pulse</a>`
+    );
+
+    // Добавляем параметры:
+    // parse_mode=HTML — чтобы работали теги <b> и <a>
+    // link_preview_options — отключаем автоматическое превью, чтобы не было дублей
+    const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?` +
+      `chat_id=${TELEGRAM_CHAT_ID}&` +
+      `text=${text}&` +
+      `parse_mode=HTML&` +
+      `disable_web_page_preview=false`; // Оставляем true, если хотим только ОДНО превью внизу
     
     await fetch(tgUrl);
   } catch (e) {

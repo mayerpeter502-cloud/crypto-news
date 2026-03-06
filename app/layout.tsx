@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: 'CryptoFlow | Market Intelligence',
-  description: 'Real-time crypto news aggregator',
+  title: 'CRYPTOFLOW | Market Pulse', // Обновили заголовок
+  description: 'Market Intelligence',
   icons: {
     icon: '/favicon.ico', 
   },
