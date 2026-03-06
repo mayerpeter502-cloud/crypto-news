@@ -12,12 +12,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// app/layout.tsx
 export const metadata = {
-  title: 'CryptoFlow | Real-Time News',
-  description: 'AI-Powered Crypto Intelligence Hub',
+  title: 'CryptoFlow | Market Intelligence',
+  description: 'Real-time crypto news aggregator',
   icons: {
-    icon: '/favicon.ico', // Путь к вашей иконке в папке app или public
+    icon: '/favicon.ico', // Ссылка на файл в папке app
   },
 };
 
