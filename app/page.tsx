@@ -65,7 +65,7 @@ export default function Home() {
           {/* КНОПКИ КАТЕГОРИЙ */}
 <div className="flex w-full gap-2 mt-8">
   {filters.map((f) => {
-    // Проверяем, активна ли категория прямо сейчас
+    // Явное сравнение для надежности
     const isActive = category === f.id;
 
     return (
@@ -79,7 +79,7 @@ export default function Home() {
           ${
             isActive 
             ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/40' 
-            : 'bg-zinc-900 border-zinc-900 text-zinc-500 hover:border-zinc-700 hover:text-white hover:bg-zinc-800'
+            : 'bg-black border-zinc-800 text-zinc-500 hover:border-zinc-400 hover:text-white'
           }
         `}
       >
