@@ -1,4 +1,7 @@
 // lib/getNews.ts
+
+// Пока у нас нет домена, используем заглушку. 
+// Когда купите домен, замените 'pulse-news.vercel.app' на ваш адрес.
 const SITE_URL = 'https://crypto-news-swart.vercel.app/'; 
 const TELEGRAM_TOKEN = '8613979794:AAEg7YrdqPBw1m76-YPWRAQ4QAenVKXtFvw';
 const TELEGRAM_CHAT_ID = '@pulse_news_hub';
@@ -8,6 +11,7 @@ export async function sendToTelegram(title: string, id: string) {
     const mySiteUrl = `${SITE_URL}/news/${id}`; 
     const text = encodeURIComponent(`🔥 *${title}*\n\n🔗 [Читать полностью на Pulse News](${mySiteUrl})`);
     const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${text}&parse_mode=Markdown`;
+    
     await fetch(tgUrl);
   } catch (e) {
     console.error("Ошибка отправки в ТГ:", e);
@@ -17,16 +21,10 @@ export async function sendToTelegram(title: string, id: string) {
 export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number = 0, category: string = 'ALL') {
   try {
     let url = `https://min-api.cryptocompare.com/data/v2/news/?lang=EN`;
-    
-    // Сопоставление категорий для API
-    if (category !== 'ALL') {
-      const apiCategory = category === 'REGULATION' ? 'Regulation' : category;
-      url += `&categories=${apiCategory}`;
-    }
-    
+    if (category !== 'ALL') url += `&categories=${category}`;
     if (lastTimestamp) url += `&lts=${lastTimestamp}`;
 
-    const res = await fetch(url, { next: { revalidate: 30 } }); // Ускорим обновление новостей
+    const res = await fetch(url, { next: { revalidate: 60 } });
     const data = await res.json();
 
     if (!data || !data.Data || !Array.isArray(data.Data)) return [];
@@ -45,7 +43,7 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
   }
 }
 
-// Функцию перевода оставляем как была
+// Функцию перевода Google оставляем без изменений как в прошлом шаге...
 export async function translateSingleText(text: string) {
     if (!text || text.length < 3) return text;
     const cacheKey = `trans_${text.substring(0, 30)}`;
