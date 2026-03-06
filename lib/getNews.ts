@@ -10,23 +10,18 @@ export async function sendToTelegram(title: string, id: string) {
   try {
     const mySiteUrl = `${SITE_URL}/news/${id}`; 
     
-    // 1. Используем специальный невидимый код для ссылки.
-    // 2. Включаем заголовок внутрь тега <a>, но делаем его невидимым пробелом,
-    // чтобы Telegram гарантированно создал превью, но не выводил текст.
-    const text = encodeURIComponent(`<a href="${mySiteUrl}">&#8203;</a>`);
+    // Используем невидимый символ (U+200B), чтобы спрятать ссылку.
+    // Это уберет синюю надпись со скрепкой и любые текстовые URL.
+    const text = encodeURIComponent(
+      `🔥 <b>${title}</b><a href="${mySiteUrl}">&#8203;</a>`
+    );
 
     const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?` +
       `chat_id=${TELEGRAM_CHAT_ID}&` +
       `text=${text}&` +
       `parse_mode=HTML`;
     
-    const response = await fetch(tgUrl);
-    
-    // Если сообщение не дошло, в консоли Vercel или терминале появится ошибка
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Telegram API Error:", errorData);
-    }
+    await fetch(tgUrl);
   } catch (e) {
     console.error("Ошибка отправки в ТГ:", e);
   }
