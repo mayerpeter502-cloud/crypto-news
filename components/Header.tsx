@@ -1,17 +1,26 @@
-export default function Header({ currentLang, onLangChange }: any) {
+'use client';
+import React from 'react';
+
+export default function Header() {
   return (
-    <header className="flex justify-between items-center p-6 border-b border-zinc-800 bg-black">
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center font-bold text-black text-sm">C</div>
-        <span className="text-xl font-bold tracking-tighter uppercase">ryptoFlow</span>
+    <header className="w-full bg-black border-b border-zinc-900 py-4 px-6 flex items-center justify-between sticky top-0 z-[100]">
+      <div className="flex items-center gap-3">
+        {/* Иконка в шапке */}
+        <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(234,88,12,0.4)]">
+          <span className="text-white font-black text-xl">C</span> 
+          {/* Или замените на <img src="/favicon.ico" className="w-6 h-6" alt="" /> */}
+        </div>
+        
+        <h1 className="text-white font-black text-2xl tracking-tighter">
+          CRYPTO<span className="text-orange-600">FLOW</span>
+        </h1>
       </div>
 
-      <button 
-        onClick={() => onLangChange(currentLang === 'EN' ? 'RU' : 'EN')}
-        className="px-4 py-1.5 border border-zinc-700 rounded-full text-xs font-bold hover:bg-white hover:text-black transition-all"
-      >
-        {currentLang === 'EN' ? 'Switch to RU' : 'Перейти на EN'}
-      </button>
+      <div className="hidden md:flex items-center gap-6">
+        <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-[0.3em] animate-pulse">
+          Live Market Intelligence
+        </span>
+      </div>
     </header>
   );
 }
