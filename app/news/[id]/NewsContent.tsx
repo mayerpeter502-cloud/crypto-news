@@ -42,7 +42,7 @@ export default function NewsContent({ article, id }: { article: any, id: string 
       </div>
 
       {/* КАРТОЧКА НОВОСТИ */}
-      <div style={{ maxWidth: '36rem', width: '100%', backgroundColor: '#050505', border: '1px solid #18181b', borderRadius: '24px', overflow: 'hidden', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+      <div style={{ maxWidth: '600px', width: '100%', backgroundColor: '#050505', border: '1px solid #18181b', borderRadius: '24px', overflow: 'hidden', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
         
         {/* КНОПКА ПОДЕЛИТЬСЯ (🔗) */}
         {mounted && (
