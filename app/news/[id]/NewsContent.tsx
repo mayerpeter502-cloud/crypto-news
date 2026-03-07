@@ -89,7 +89,7 @@ export default function NewsContent({ article, id }: { article: any, id: string 
       <div style={{ width: '100%', maxWidth: '36rem', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '32px' }}>
         <button 
           onClick={() => router.push('/')} 
-          style={{ marginBottom: '32px', color: '#ffffff', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.4em', cursor: 'pointer', backgroundColor: 'transparent', border: 'none', padding: '8px' }}
+          style={{ marginBottom: '32px', color: '#000000', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.4em', cursor: 'pointer', backgroundColor: 'transparent', border: 'none', padding: '8px' }}
         >
           ← Вернуться на главную
         </button>
