@@ -7,7 +7,6 @@ export default function NewsContent({ article, id }: { article: any, id: string 
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Ждем монтирования компонента, чтобы избежать ошибок гидратации
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -37,15 +36,15 @@ export default function NewsContent({ article, id }: { article: any, id: string 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-start p-4 pt-6 text-white font-sans">
       
-      {/* 1. ВЕРХНИЙ БАННЕР */}
+      {/* ВЕРХНИЙ БАННЕР */}
       <div className="w-full max-w-[600px] h-[90px] bg-[#0c0c0c] border border-dashed border-zinc-800 rounded-xl mb-6 flex items-center justify-center text-zinc-600 text-[10px] font-black uppercase tracking-widest">
         Место для баннера 728x90
       </div>
 
-      {/* 2. ОСНОВНАЯ КАРТОЧКА */}
+      {/* КАРТОЧКА НОВОСТИ */}
       <div className="max-w-xl w-full bg-[#050505] border border-zinc-900 rounded-[24px] overflow-hidden shadow-2xl relative">
         
-        {/* КНОПКА ПОДЕЛИТЬСЯ (В ПРАВОМ ВЕРХНЕМ УГЛУ ИЗОБРАЖЕНИЯ) */}
+        {/* КНОПКА ПОДЕЛИТЬСЯ (🔗) */}
         {mounted && (
           <button 
             onClick={handleCopy}
@@ -61,11 +60,7 @@ export default function NewsContent({ article, id }: { article: any, id: string 
 
         <div className="p-4">
           <div className="w-full h-[220px] rounded-[18px] overflow-hidden bg-zinc-900">
-            <img 
-              src={article.imageurl} 
-              alt="" 
-              className="w-full h-full object-cover"
-            />
+            <img src={article.imageurl} alt="" className="w-full h-full object-cover" />
           </div>
         </div>
         
@@ -78,13 +73,13 @@ export default function NewsContent({ article, id }: { article: any, id: string 
             {article.body?.substring(0, 300)}...
           </p>
 
-          {/* ЧИТАТЬ ОРИГИНАЛ - ТЕПЕРЬ ЭТО ЦЕНТРАЛЬНАЯ КНОПКА */}
+          {/* КНОПКА ОРИГИНАЛА: ШРИФТ 11px, КАК У КНОПКИ НАЗАД */}
           <div className="flex justify-center mb-4">
             <a 
               href={article.url} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="inline-flex items-center justify-center px-12 py-4 bg-orange-600 text-white font-black text-[12px] rounded-full no-underline uppercase tracking-widest hover:scale-105 transition-transform active:scale-95 shadow-lg shadow-orange-600/20"
+              className="inline-flex items-center justify-center px-12 py-4 bg-orange-600 text-white font-black text-[11px] rounded-full no-underline uppercase tracking-[0.4em] hover:scale-105 transition-transform active:scale-95 shadow-lg shadow-orange-600/20"
             >
               Читать оригинал
             </a>
@@ -92,7 +87,7 @@ export default function NewsContent({ article, id }: { article: any, id: string 
         </div>
       </div>
 
-      {/* 3. КНОПКА НАЗАД - ВЫНЕСЕНА ПОД КАРТОЧКУ (БЕЛЫЙ ЦВЕТ) */}
+      {/* КНОПКА НАЗАД */}
       <div className="w-full max-w-xl flex flex-col items-center mt-8">
         <button 
           onClick={() => router.push('/')} 
