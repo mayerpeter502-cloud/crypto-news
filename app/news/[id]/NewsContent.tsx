@@ -37,7 +37,7 @@ export default function NewsContent({ article, id }: { article: any, id: string 
     <div className="min-h-screen bg-black flex flex-col items-center justify-start p-4 pt-6 text-white font-sans">
       
       {/* ВЕРХНИЙ БАННЕР */}
-      <div style={{ width: '100%', maxWidth: '600px', height: '90px', backgroundColor: '#0c0c0c', border: '1px dashed #27272a', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52525b', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+      <div style={{ width: '100%', maxWidth: '600px', height: '150px', backgroundColor: '#0c0c0c', border: '1px dashed #27272a', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#52525b', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
         Место для баннера 728x90
       </div>
 
