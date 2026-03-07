@@ -44,7 +44,7 @@ export default function NewsContent({ article, id }: { article: any, id: string 
       {/* КАРТОЧКА НОВОСТИ */}
       <div className="max-w-xl w-full bg-[#050505] border border-zinc-900 rounded-[24px] overflow-hidden shadow-2xl relative">
         
-        {/* КНОПКА ПОДЕЛИТЬСЯ (🔗) */}
+        {/* КНОПКА ПОДЕЛИТЬСЯ */}
         {mounted && (
           <button 
             onClick={handleCopy}
@@ -65,15 +65,17 @@ export default function NewsContent({ article, id }: { article: any, id: string 
         </div>
         
         <div className="p-8 pt-2 text-center">
+          {/* ЗАГОЛОВОК: ЧИСТО БЕЛЫЙ */}
           <h1 className="text-white text-2xl font-black leading-tight mb-6 tracking-tight">
             {article.title}
           </h1>
 
+          {/* ОПИСАНИЕ: БЕЛО-СЕРЫЙ (zinc-400) */}
           <p className="text-zinc-400 text-sm leading-relaxed mb-10 text-left opacity-90">
             {article.body?.substring(0, 300)}...
           </p>
 
-          {/* КНОПКА ОРИГИНАЛА: ШРИФТ 11px, КАК У КНОПКИ НАЗАД */}
+          {/* КНОПКА ОРИГИНАЛА: ТЕПЕРЬ 11px И tracking-[0.4em] КАК НАЗАД */}
           <div className="flex justify-center mb-4">
             <a 
               href={article.url} 
