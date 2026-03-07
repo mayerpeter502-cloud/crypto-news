@@ -1,22 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Используем значения по умолчанию, чтобы сборщик не выдавал ошибку "required"
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder';
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-// Заставляем Vercel не кешировать этот запрос
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  try {
-    if (!BOT_TOKEN || !CHAT_ID) {
-      throw new Error('Telegram tokens are not configured');
-    }
+  // Проверка ключей уже внутри функции, а не на этапе сборки
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !BOT_TOKEN) {
+    return NextResponse.json({ error: 'Config missing' }, { status: 500 });
+  }
+  // ... далее ваш основной код ...
 
     // --- ЧАСТЬ 1: УДАЛЕНИЕ СТАРЫХ ПОСТОВ (48 ЧАСОВ) ---
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
