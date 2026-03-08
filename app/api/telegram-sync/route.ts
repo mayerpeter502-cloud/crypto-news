@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 
 const POST_INTERVAL_MS = 1.5 * 60 * 60 * 1000; 
-const DELETE_AFTER_MS = 48 * 60 * 60 * 1000;
+const DELETE_AFTER_MS = 48 * 60 * 60 * 1000; // 48 часов для очистки
 
 function escapeMarkdown(text: string) {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
@@ -16,12 +16,33 @@ export async function GET() {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. Очистка (48 часов)
+    // --- 1. ОЧИСТКА (БД И ТГ) ЧЕРЕЗ 48 ЧАСОВ ---
     const expirationDate = new Date(Date.now() - DELETE_AFTER_MS).toISOString();
-    await supabase.from('telegram_posts').delete().lt('created_at', expirationDate);
+    
+    const { data: expired } = await supabase
+      .from('telegram_posts')
+      .select('id, message_id')
+      .lt('created_at', expirationDate);
 
-    // 2. Проверка интервала 1.5 часа
+    if (expired && expired.length > 0) {
+      for (const post of expired) {
+        if (post.message_id) {
+          // Удаляем сообщение из канала Telegram
+          await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chat_id: chatId, message_id: post.message_id }),
+          }).catch(() => {}); 
+        }
+        // Удаляем запись из базы данных
+        await supabase.from('telegram_posts').delete().eq('id', post.id);
+      }
+    }
+
+    // --- 2. ПРОВЕРКА ИНТЕРВАЛА 1.5 ЧАСА ---
     const { data: lastPost } = await supabase
       .from('telegram_posts')
       .select('created_at')
@@ -33,11 +54,11 @@ export async function GET() {
     if (lastPost) {
       const diff = Date.now() - new Date(lastPost.created_at).getTime();
       if (diff < POST_INTERVAL_MS) {
-        return NextResponse.json({ message: "Interval not met" });
+        return NextResponse.json({ message: "Wait for 1.5h interval" });
       }
     }
 
-    // 3. Проверяем наличие новостей в очереди
+    // --- 3. ПОЛУЧЕНИЕ НОВОСТИ ИЗ ОЧЕРЕДИ (БЕЗ ПУСТЫХ ПОЛЕЙ) ---
     let { data: queuePost } = await supabase
       .from('telegram_posts')
       .select('*')
@@ -47,13 +68,12 @@ export async function GET() {
       .limit(1)
       .maybeSingle();
 
-    // 4. Если в очереди мало новостей (меньше 5) или она пуста — догружаем 20 новых
+    // Если в очереди пусто — догружаем сразу 20 штук
     if (!queuePost) {
       const res = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
       const cryptoData = await res.json();
       
       if (cryptoData.Data && Array.isArray(cryptoData.Data)) {
-        // Берем 20 новостей для запаса на сутки+
         for (const n of cryptoData.Data.slice(0, 20)) {
           await supabase.from('telegram_posts').upsert({
             news_id: n.id.toString(),
@@ -65,15 +85,15 @@ export async function GET() {
       return NextResponse.json({ message: "Queue replenished with 20 news" });
     }
 
-    // 5. Отправка в TG
+    // --- 4. ОТПРАВКА В ТЕЛЕГРАМ ---
     const internalLink = `https://crypto-news-swart.vercel.app/news/${queuePost.news_id}`;
     const msg = `*${escapeMarkdown(queuePost.title)}*\n\n[Читать на сайте](${internalLink})`;
 
-    const tgRes = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        chat_id: process.env.TELEGRAM_CHAT_ID,
+        chat_id: chatId,
         text: msg,
         parse_mode: 'MarkdownV2',
       }),
