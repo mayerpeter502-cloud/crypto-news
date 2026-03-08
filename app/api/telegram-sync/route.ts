@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
-const INTERVAL_MS = 2.5 * 60 * 60 * 1000; 
-const DELETE_AFTER_MS = 48 * 60 * 60 * 1000; 
 
 function escapeMarkdown(text: string) {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
@@ -18,40 +16,8 @@ export async function GET() {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. УДАЛЕНИЕ: Чистим старые посты в ТГ и БД
-    const expirationDate = new Date(Date.now() - DELETE_AFTER_MS).toISOString();
-    const { data: expired } = await supabase
-      .from('telegram_posts')
-      .select('id, message_id')
-      .not('message_id', 'is', null)
-      .lt('created_at', expirationDate);
-
-    if (expired && expired.length > 0) {
-      for (const post of expired) {
-        await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, message_id: post.message_id }),
-        }).catch(() => {});
-        await supabase.from('telegram_posts').delete().eq('id', post.id);
-      }
-    }
-
-    // 2. ИНТЕРВАЛ: Проверяем время последнего успешного поста
-    const { data: lastPost } = await supabase
-      .from('telegram_posts')
-      .select('created_at')
-      .not('message_id', 'is', null)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (lastPost && (Date.now() - new Date(lastPost.created_at).getTime() < INTERVAL_MS)) {
-      return NextResponse.json({ message: 'Wait for 2.5h interval' });
-    }
-
-    // 3. ОЧЕРЕДЬ: Берем новость, которая еще не была отправлена
-    let { data: queuePost } = await supabase
+    // 1. Пытаемся взять новость, которую еще не отправляли
+    let { data: post } = await supabase
       .from('telegram_posts')
       .select('*')
       .is('message_id', null)
@@ -59,42 +25,52 @@ export async function GET() {
       .limit(1)
       .maybeSingle();
 
-    if (!queuePost) {
-      // Если очередь пуста, подгружаем свежее
-      const res = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
-      const cryptoData = await res.json();
-      for (const n of cryptoData.Data.slice(0, 10)) {
-        const { data: ex } = await supabase.from('telegram_posts').select('id').eq('news_id', n.id.toString()).maybeSingle();
-        if (!ex) {
-          await supabase.from('telegram_posts').insert({
-            news_id: n.id.toString(),
-            title: n.title,
-            link: n.url
-          });
-        }
+    // 2. Если в базе совсем пусто, загружаем свежие новости из API
+    if (!post) {
+      const newsRes = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
+      const newsData = await newsRes.json();
+      
+      // Сохраняем первые 10 новостей, чтобы они появились на сайте
+      for (const n of newsData.Data.slice(0, 10)) {
+        await supabase.from('telegram_posts').upsert({
+          news_id: n.id.toString(),
+          title: n.title,
+          link: n.url
+        }, { onConflict: 'news_id' });
       }
-      return NextResponse.json({ message: 'Queue updated from API' });
+
+      return NextResponse.json({ success: true, message: "Queue updated. Refresh page." });
     }
 
-    // 4. ОТПРАВКА: Ссылка ведет на ваш домен /news/[id]
-    const internalLink = `https://crypto-news-swart.vercel.app/news/${queuePost.news_id}`;
-    const msg = `*${escapeMarkdown(queuePost.title || 'Crypto News')}*\n\n[Читать на сайте](${escapeMarkdown(internalLink)})`;
+    // 3. Формируем ОДНО сообщение (исправлена ошибка дублирования)
+    const internalLink = `https://crypto-news-swart.vercel.app/news/${post.news_id}`;
+    const messageText = `*${escapeMarkdown(post.title || 'Crypto News')}*\n\n[Читать подробнее](${escapeMarkdown(internalLink)})`;
 
+    // 4. Отправка в Telegram
     const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'MarkdownV2' }),
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: messageText,
+        parse_mode: 'MarkdownV2',
+      }),
     });
 
     const tgResult = await tgRes.json();
+
     if (tgResult.ok) {
-      await supabase.from('telegram_posts')
+      // Сохраняем ID сообщения, чтобы не отправлять повторно
+      await supabase
+        .from('telegram_posts')
         .update({ message_id: tgResult.result.message_id.toString() })
-        .eq('id', queuePost.id);
-      return NextResponse.json({ success: true, message: 'Posted' });
+        .eq('id', post.id);
+      
+      return NextResponse.json({ success: true, posted: post.news_id });
     }
 
-    return NextResponse.json({ error: 'Telegram API error' }, { status: 500 });
+    return NextResponse.json({ error: tgResult.description }, { status: 500 });
+
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
