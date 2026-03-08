@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// ТЗ: Добавляем force-dynamic, чтобы Vercel не пытался собрать это как статику
 export const dynamic = 'force-dynamic';
 
-// Функция для очистки спецсимволов (MarkdownV2 требует экранирования)
 function escapeMarkdown(text: string) {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
@@ -13,26 +11,57 @@ export async function GET() {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // ТЗ: Проверка переменных в рантайме без "!" (non-null assertion)
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('Missing Supabase environment variables');
+    if (!supabaseUrl || !supabaseKey || !botToken || !chatId) {
+      console.error('Missing environment variables');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Пример логики (замените на вашу выборку из CryptoCompare/DB)
-    // const { data, error } = await supabase.from('telegram_posts').select('*')...
+    // 1. Получаем один неопубликованный пост
+    const { data: post, error: dbError } = await supabase
+      .from('telegram_posts')
+      .select('*')
+      .eq('is_published', false)
+      .limit(1)
+      .single();
 
-    // Пример отправки в Telegram
-    // const message = escapeMarkdown("Ваш текст новости");
-    // await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage...`);
+    if (dbError || !post) {
+      return NextResponse.json({ success: true, message: 'No new posts to send' });
+    }
 
-    return NextResponse.json({ success: true, message: 'Sync completed' });
+    // 2. Формируем текст (предположим, в таблице есть колонки title и link)
+    const message = `*${escapeMarkdown(post.title)}*\n\n${escapeMarkdown(post.link || '')}`;
+
+    // 3. Отправляем в Telegram
+    const tgResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'MarkdownV2',
+      }),
+    });
+
+    const tgResult = await tgResponse.json();
+
+    if (!tgResult.ok) {
+      throw new Error(`Telegram API error: ${tgResult.description}`);
+    }
+
+    // 4. Помечаем пост как опубликованный в БД
+    await supabase
+      .from('telegram_posts')
+      .update({ is_published: true })
+      .eq('id', post.id);
+
+    return NextResponse.json({ success: true, message: 'Post sent successfully' });
   } catch (error: any) {
     console.error('Sync error:', error);
-    // ТЗ: Всегда возвращаем NextResponse в блоке catch
     return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
