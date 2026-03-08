@@ -21,24 +21,21 @@ export async function GET() {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Получаем один неопубликованный пост
-    // Ищем пост, у которого еще нет message_id (значит, он не отправлен)
-const { data: post, error: dbError } = await supabase
-  .from('telegram_posts')
-  .select('*')
-  .is('message_id', null) 
-  .limit(1)
-  .single();
+    // 1. Ищем пост, у которого еще нет message_id (значит, он не отправлен)
+    const { data: post, error: dbError } = await supabase
+      .from('telegram_posts')
+      .select('*')
+      .is('message_id', null) 
+      .limit(1)
+      .maybeSingle(); // maybeSingle не выдает ошибку, если данных нет
 
-if (dbError || !post) {
-  return NextResponse.json({ success: true, message: 'No new posts to send' });
-}
+    if (dbError || !post) {
+      return NextResponse.json({ success: true, message: 'No new posts to send' });
+    }
 
-// Отправляем news_id как текст (пока нет колонки с текстом новости)
-const message = `Новость ID: ${escapeMarkdown(post.news_id)}`;
-
-    // 2. Формируем текст (предположим, в таблице есть колонки title и link)
-    const message = `*${escapeMarkdown(post.title)}*\n\n${escapeMarkdown(post.link || '')}`;
+    // 2. Формируем текст сообщения на основе вашей таблицы (news_id)
+    // Используем только существующие поля из БД
+    const messageContent = `Новость ID: ${escapeMarkdown(post.news_id)}`;
 
     // 3. Отправляем в Telegram
     const tgResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -46,7 +43,7 @@ const message = `Новость ID: ${escapeMarkdown(post.news_id)}`;
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: chatId,
-        text: message,
+        text: messageContent,
         parse_mode: 'MarkdownV2',
       }),
     });
@@ -57,11 +54,15 @@ const message = `Новость ID: ${escapeMarkdown(post.news_id)}`;
       throw new Error(`Telegram API error: ${tgResult.description}`);
     }
 
-    // 4. Помечаем пост как опубликованный в БД
-    await supabase
+    // 4. Сохраняем полученный message_id в таблицу Supabase
+    const { error: updateError } = await supabase
       .from('telegram_posts')
-      .update({ is_published: true })
+      .update({ message_id: tgResult.result.message_id.toString() })
       .eq('id', post.id);
+
+    if (updateError) {
+      console.error('Failed to update post status:', updateError);
+    }
 
     return NextResponse.json({ success: true, message: 'Post sent successfully' });
   } catch (error: any) {
