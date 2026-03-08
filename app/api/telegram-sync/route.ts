@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 
-// 1. Убираем восклицательные знаки, чтобы билд не падал без ключей
+// Убираем !, чтобы билд не падал локально
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
@@ -14,12 +14,11 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Проверка наличия переменных внутри функции
     if (!supabaseUrl || !BOT_TOKEN || !CHAT_ID) {
-      return NextResponse.json({ error: "Missing configuration" }, { status: 500 });
+      return NextResponse.json({ error: "Config missing" }, { status: 500 });
     }
 
-    // --- ЧАСТЬ 1: УДАЛЕНИЕ СТАРЫХ ПОСТОВ ---
+    // Удаление старых
     const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const { data: oldPosts } = await supabase
       .from('telegram_posts')
@@ -33,7 +32,7 @@ export async function GET() {
       }
     }
 
-    // --- ЧАСТЬ 2: ПОСТИНГ НОВОЙ НОВОСТИ ---
+    // Постинг новой
     const res = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
     const newsData = await res.json();
     
@@ -42,8 +41,6 @@ export async function GET() {
     }
 
     const latestNews = newsData.Data[0];
-
-    // Проверяем дубликаты
     const { data: existing } = await supabase
       .from('telegram_posts')
       .select('news_id')
@@ -51,7 +48,9 @@ export async function GET() {
       .maybeSingle();
 
     if (!existing) {
-      const messageText = `*${latestNews.title.replace(/[*_`]/g, '')}*\n\n${latestNews.body.substring(0, 150).replace(/[*_`]/g, '')}...`;
+      const cleanTitle = latestNews.title.replace(/[*_`\\]/g, '');
+      const cleanBody = latestNews.body.substring(0, 150).replace(/[*_`\\]/g, '');
+      const messageText = `*${cleanTitle}*\n\n${cleanBody}...`;
       const url = `https://crypto-news-swart.vercel.app/news/${latestNews.id}`;
 
       const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -77,8 +76,9 @@ export async function GET() {
     }
 
     return NextResponse.json({ success: true });
+
   } catch (error: any) {
-    // Здесь NextResponse допустим, так как это выход из функции
+    // ВАЖНО: Добавлен return перед ответом об ошибке
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
