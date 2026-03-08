@@ -1,15 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   typescript: {
-    // ТЗ: Игнорируем ошибки TypeScript при сборке
+    // ТЗ: Игнорируем ошибки TS при сборке
     ignoreBuildErrors: true,
   },
-  eslint: {
-    // ТЗ: Игнорируем ошибки ESLint при сборке
-    ignoreDuringBuilds: true,
-  },
+  // В Next.js 16+ настройки линтера вынесены или обрабатываются иначе, 
+  // для прохождения билда достаточно игнорирования ошибок TS.
 };
 
 export default nextConfig;
