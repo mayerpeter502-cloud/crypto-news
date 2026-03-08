@@ -13,13 +13,10 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // --- ДОБАВЛЕННЫЙ БЛОК ДЛЯ АВТОПОСТИНГА ---
+  // Автоматический запуск синхронизации при каждом входе пользователя
   useEffect(() => {
-    // Вызываем API синхронизации. 
-    // Скрипт сам проверит в БД, прошло ли 2.5 часа с последнего поста.
-    fetch('/api/telegram-sync').catch((err) => console.error("Sync error:", err));
-  }, []); 
-  // ----------------------------------------
+    fetch('/api/telegram-sync').catch(() => {});
+  }, []);
 
   const filters = [
     { id: 'ALL', label: lang === 'EN' ? 'All News' : 'Все новости' },
@@ -60,7 +57,6 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white">
       <Header currentLang={lang} onLangChange={setLang} />
       <PriceTicker />
-      
       <div className="max-w-[800px] mx-auto py-10 px-4">
         <div className="mb-10">
           <h1 className="text-4xl md:text-5xl font-black uppercase italic tracking-tighter text-white">
@@ -69,29 +65,18 @@ export default function Home() {
           <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">
             {lang === 'EN' ? 'Real-time crypto intelligence' : 'Крипто-аналитика в реальном времени'}
           </p>
-          
           <div className="flex w-full gap-2 mt-8">
             {filters.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setCategory(f.id)}
-                className={`
-                  flex-1 py-3 px-1 rounded text-[10px] font-black uppercase tracking-wider 
-                  transition-all duration-200 border text-center whitespace-nowrap
-                  cursor-pointer active:scale-95
-                  ${
-                    category === f.id 
-                    ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/40' 
-                    : 'bg-zinc-900 border-zinc-900 text-zinc-500 hover:border-orange-600/50 hover:text-white hover:bg-zinc-800'
-                  }
-                `}
+                className={`flex-1 py-3 px-1 rounded text-[10px] font-black uppercase tracking-wider transition-all duration-200 border text-center whitespace-nowrap cursor-pointer active:scale-95 ${category === f.id ? 'bg-orange-600 border-orange-600 text-white shadow-lg shadow-orange-600/40' : 'bg-zinc-900 border-zinc-900 text-zinc-500 hover:border-orange-600/50 hover:text-white hover:bg-zinc-800'}`}
               >
                 {f.label}
               </button>
             ))}
           </div>
         </div>
-
         {loading ? (
           <div className="py-20 text-center text-orange-600 animate-pulse font-bold uppercase text-xs tracking-widest">
             {lang === 'EN' ? 'Loading Intelligence...' : 'Загрузка данных...'}
@@ -103,7 +88,6 @@ export default function Home() {
             ))}
           </div>
         )}
-        
         <div ref={loaderRef} className="h-24 flex justify-center items-center">
           {hasMore && !loading && (
             <div className="w-6 h-6 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>

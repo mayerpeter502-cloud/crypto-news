@@ -18,7 +18,7 @@ export async function GET() {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. ОЧИСТКА: Удаляем старые посты из TG и базы
+    // 1. УДАЛЕНИЕ: Чистим старые посты в ТГ и БД
     const expirationDate = new Date(Date.now() - DELETE_AFTER_MS).toISOString();
     const { data: expired } = await supabase
       .from('telegram_posts')
@@ -37,7 +37,7 @@ export async function GET() {
       }
     }
 
-    // 2. ИНТЕРВАЛ: Проверяем время последнего поста
+    // 2. ИНТЕРВАЛ: Проверяем время последнего успешного поста
     const { data: lastPost } = await supabase
       .from('telegram_posts')
       .select('created_at')
@@ -47,10 +47,10 @@ export async function GET() {
       .maybeSingle();
 
     if (lastPost && (Date.now() - new Date(lastPost.created_at).getTime() < INTERVAL_MS)) {
-      return NextResponse.json({ message: 'Wait for interval' });
+      return NextResponse.json({ message: 'Wait for 2.5h interval' });
     }
 
-    // 3. ОЧЕРЕДЬ: Берем готовую новость или загружаем новые
+    // 3. ОЧЕРЕДЬ: Берем новость, которая еще не была отправлена
     let { data: queuePost } = await supabase
       .from('telegram_posts')
       .select('*')
@@ -60,6 +60,7 @@ export async function GET() {
       .maybeSingle();
 
     if (!queuePost) {
+      // Если очередь пуста, подгружаем свежее
       const res = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
       const cryptoData = await res.json();
       for (const n of cryptoData.Data.slice(0, 10)) {
@@ -67,17 +68,17 @@ export async function GET() {
         if (!ex) {
           await supabase.from('telegram_posts').insert({
             news_id: n.id.toString(),
-            title: n.title, // Используем колонку из вашего SQL
-            link: n.url     // Используем колонку из вашего SQL
+            title: n.title,
+            link: n.url
           });
         }
       }
-      return NextResponse.json({ message: 'Queue replenished' });
+      return NextResponse.json({ message: 'Queue updated from API' });
     }
 
-    // 4. ПОСТИНГ: Отправляем в TG
+    // 4. ОТПРАВКА: Ссылка ведет на ваш домен /news/[id]
     const internalLink = `https://crypto-news-swart.vercel.app/news/${queuePost.news_id}`;
-    const msg = `*${escapeMarkdown(queuePost.title)}*\n\n[Читать на сайте](${escapeMarkdown(internalLink)})`;
+    const msg = `*${escapeMarkdown(queuePost.title || 'Crypto News')}*\n\n[Читать на сайте](${escapeMarkdown(internalLink)})`;
 
     const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
@@ -90,10 +91,10 @@ export async function GET() {
       await supabase.from('telegram_posts')
         .update({ message_id: tgResult.result.message_id.toString() })
         .eq('id', queuePost.id);
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, message: 'Posted' });
     }
 
-    return NextResponse.json({ error: 'TG Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Telegram API error' }, { status: 500 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
