@@ -22,16 +22,20 @@ export async function GET() {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // 1. Получаем один неопубликованный пост
-    const { data: post, error: dbError } = await supabase
-      .from('telegram_posts')
-      .select('*')
-      .eq('is_published', false)
-      .limit(1)
-      .single();
+    // Ищем пост, у которого еще нет message_id (значит, он не отправлен)
+const { data: post, error: dbError } = await supabase
+  .from('telegram_posts')
+  .select('*')
+  .is('message_id', null) 
+  .limit(1)
+  .single();
 
-    if (dbError || !post) {
-      return NextResponse.json({ success: true, message: 'No new posts to send' });
-    }
+if (dbError || !post) {
+  return NextResponse.json({ success: true, message: 'No new posts to send' });
+}
+
+// Отправляем news_id как текст (пока нет колонки с текстом новости)
+const message = `Новость ID: ${escapeMarkdown(post.news_id)}`;
 
     // 2. Формируем текст (предположим, в таблице есть колонки title и link)
     const message = `*${escapeMarkdown(post.title)}*\n\n${escapeMarkdown(post.link || '')}`;
