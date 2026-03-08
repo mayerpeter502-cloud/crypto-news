@@ -21,21 +21,22 @@ export async function GET() {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. Ищем пост, у которого еще нет message_id (значит, он не отправлен)
-    const { data: post, error: dbError } = await supabase
-      .from('telegram_posts')
-      .select('*')
-      .is('message_id', null) 
-      .limit(1)
-      .maybeSingle(); // maybeSingle не выдает ошибку, если данных нет
+    // Замените блок формирования сообщения в вашем route.ts на этот:
+const { data: post, error: dbError } = await supabase
+  .from('telegram_posts')
+  .select('*')
+  .is('message_id', null) 
+  .limit(1)
+  .maybeSingle();
 
-    if (dbError || !post) {
-      return NextResponse.json({ success: true, message: 'No new posts to send' });
-    }
+if (dbError || !post) {
+  return NextResponse.json({ success: true, message: 'No new posts to send' });
+}
 
-    // 2. Формируем текст сообщения на основе вашей таблицы (news_id)
-    // Используем только существующие поля из БД
-    const messageContent = `Новость ID: ${escapeMarkdown(post.news_id)}`;
+// Используем новые русскоязычные названия колонок из вашего SQL
+const title = post.заголовок || `Новость ${post.news_id}`;
+const link = post["текст ссылки"] || '';
+const messageContent = `*${escapeMarkdown(title)}*\n\n${escapeMarkdown(link)}`;
 
     // 3. Отправляем в Telegram
     const tgResponse = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
