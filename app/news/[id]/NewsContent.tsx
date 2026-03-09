@@ -29,14 +29,14 @@ export default function NewsContent({ article, id, related = [] }: { article: an
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-10 text-center">
         <h1 className="text-xl font-black mb-4 uppercase">Новость не найдена</h1>
         <button onClick={() => router.push('/')} className="bg-[#ea580c] px-8 py-3 rounded-full font-black uppercase text-white">
-          На главную
+          Home
         </button>
       </div>
     );
   }
 
   return (
-    // ВОЗВРАЩАЕМ ЧЕРНЫЙ ФОН ДЛЯ ВСЕЙ СТРАНИЦЫ
+    // ВОЗВРАЩАЕМ БЕЛЫЙ ФОН ДЛЯ ВСЕЙ СТРАНИЦЫ
     <div className="min-h-screen bg-black text-white font-sans">
       <Header />
       <PriceTicker />
@@ -56,7 +56,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
         <div className="relative flex justify-center w-full max-w-[1200px] gap-8">
           
           {/* Яркие баннеры оставляем по бокам */}
-          <aside className="hidden lg:flex flex-col gap-4 w-[160px] shrink-0">
+          <aside className="flex flex-col gap-4 w-[160px] shrink-0">
             <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
               РЕКЛАМА / ADVERTISING
             </div>
@@ -127,7 +127,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             )}
           </div>
 
-          <aside className="hidden lg:flex flex-col gap-4 w-[160px] shrink-0">
+          <aside className="flex flex-col gap-4 w-[160px] shrink-0">
             <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
               РЕКЛАМА / ADVERTISING
             </div>
