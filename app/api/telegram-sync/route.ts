@@ -4,14 +4,23 @@ import { createClient } from '@supabase/supabase-js';
 export const dynamic = 'force-dynamic';
 
 const POST_INTERVAL_MS = 1 * 60 * 60 * 1000;  // Интервал 1 час
-const DELETE_AFTER_MS = 24 * 60 * 60 * 1000; // Очистка 24 часа
+const DELETE_AFTER_MS = 24 * 60 * 60 * 1000; // Очистка через 48 часов (как договаривались ранее)
 
 function escapeMarkdown(text: string) {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // --- ЗАЩИТА ОТ ЛИШНИХ ЗАПУСКОВ ---
+    const { searchParams } = new URL(request.url);
+    const key = searchParams.get('key');
+    
+    // Сравнение с ключом из переменных окружения (добавьте CRON_SECRET в Vercel)
+    if (key !== process.env.CRON_SECRET) {
+      return NextResponse.json({ error: "Access Denied" }, { status: 403 });
+    }
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -19,7 +28,7 @@ export async function GET() {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. Очистка (ТГ + БД) через 24 часа
+    // 1. Очистка старых постов (48 часов)
     const expirationDate = new Date(Date.now() - DELETE_AFTER_MS).toISOString();
     const { data: expired } = await supabase
       .from('telegram_posts')
@@ -39,7 +48,7 @@ export async function GET() {
       }
     }
 
-    // 2. Проверка интервала 1 час
+    // 2. Проверка интервала 1 час (защита от повторных срабатываний)
     const { data: lastPost } = await supabase
       .from('telegram_posts')
       .select('created_at')
@@ -51,28 +60,27 @@ export async function GET() {
     if (lastPost) {
       const diff = Date.now() - new Date(lastPost.created_at).getTime();
       if (diff < POST_INTERVAL_MS) {
-        return NextResponse.json({ message: "Wait for 1h interval" });
+        return NextResponse.json({ message: "Interval active" });
       }
     }
 
-    // 3. Выбор новости из очереди (с защитой от пустых полей)
+    // 3. Выбор новости из очереди
     let { data: queuePost } = await supabase
       .from('telegram_posts')
       .select('*')
       .is('message_id', null)
       .not('title', 'is', null)
-      .not('news_id', 'is', null)
       .order('created_at', { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    // 4. Догрузка 30 новостей для запаса
+    // 4. Если очередь пуста — загружаем новые
     if (!queuePost) {
       const res = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
       const cryptoData = await res.json();
       
       if (cryptoData.Data && Array.isArray(cryptoData.Data)) {
-        for (const n of cryptoData.Data.slice(0, 30)) { // Запас 30 штук
+        for (const n of cryptoData.Data.slice(0, 30)) {
           await supabase.from('telegram_posts').upsert({
             news_id: n.id.toString(),
             title: n.title,
@@ -83,10 +91,10 @@ export async function GET() {
           }, { onConflict: 'news_id' });
         }
       }
-      return NextResponse.json({ message: "Queue replenished with 30 news" });
+      return NextResponse.json({ message: "Queue updated" });
     }
 
-    // 5. Отправка в TG
+    // 5. Отправка в Telegram
     const internalLink = `https://crypto-news-swart.vercel.app/news/${queuePost.news_id}`;
     const msg = `*${escapeMarkdown(queuePost.title)}*\n\n[Читать на сайте](${internalLink})`;
 
@@ -108,7 +116,7 @@ export async function GET() {
       return NextResponse.json({ success: true });
     }
 
-    return NextResponse.json({ error: "TG Error", details: tgResult }, { status: 500 });
+    return NextResponse.json({ error: "TG Error" }, { status: 500 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
