@@ -105,14 +105,25 @@ export default function NewsContent({ article, id, related = [] }: { article: an
         </div>
       )}
 
-      {/* КНОПКА НАЗАД */}
-      <div style={{ width: '100%', maxWidth: '600px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '48px' }}>
-        <button 
-          onClick={() => router.push('/')} 
-          style={{ marginBottom: '32px', color: '#a1a1aa', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.4em', cursor: 'pointer', backgroundColor: 'transparent', border: 'none' }}
-        >
-          ← На главную
-        </button>
+      {/* Четкая кнопка в NewsContent.tsx */}
+<button 
+  onClick={() => router.push('/')} 
+  style={{ 
+    padding: '12px 28px', 
+    border: '2px solid #27272a', // Более толстая рамка
+    borderRadius: '9999px', 
+    color: '#ffffff',           // Чистый белый текст
+    fontSize: '12px', 
+    fontWeight: '900', 
+    textTransform: 'uppercase', 
+    letterSpacing: '0.2em', 
+    cursor: 'pointer', 
+    backgroundColor: '#09090b',
+    boxShadow: '0 4px 14px 0 rgba(0,0,0,0.39)' // Немного тени для объема
+  }}
+>
+  ← На главную
+</button>
       </div>
     </div>
   );
