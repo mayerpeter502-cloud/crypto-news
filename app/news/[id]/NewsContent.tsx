@@ -41,6 +41,15 @@ export default function NewsContent({ article, id, related = [] }: { article: an
       <Header />
       <PriceTicker />
 
+<div className="flex flex-col items-center pt-8 pb-4 bg-white">
+        <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-black">
+          MARKET PULSE
+        </h2>
+        <p className="text-[10px] font-bold uppercase letter spacing tracking-[0.3em] text-zinc-400 mt-2">
+          REAL-TIME CRYPTO INTELLIGENCE
+        </p>
+      </div>
+
       {/* ВОЗВРАЩАЕМ СВЕТЛО-СЕРЫЙ ФОН КОНТЕНТНОЙ ОБЛАСТИ (как на скриншотах) */}
       <div style={{ backgroundColor: '#f4f4f5' }} className="flex flex-col items-center p-4 pt-8">
         
