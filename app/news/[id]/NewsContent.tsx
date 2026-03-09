@@ -53,10 +53,10 @@ export default function NewsContent({ article, id, related = [] }: { article: an
       {/* ВОЗВРАЩАЕМ СВЕТЛО-СЕРЫЙ ФОН КОНТЕНТНОЙ ОБЛАСТИ (как на скриншотах) */}
       <div style={{ backgroundColor: '#f4f4f5' }} className="flex flex-col items-center p-4 pt-8">
         
-        <div className="relative flex justify-center w-full max-w-[1400px] px-8 gap-16">
+        <div className="relative flex justify-center w-full max-w-[1400px] gap-16">
           
           {/* Яркие баннеры оставляем по бокам */}
-          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-4">
+          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-8">
             <div style={{ position: 'sticky',
     top: '32px',
     alignSelf: 'flex-start', height: '600px', width: '100%', background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
@@ -65,7 +65,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
           </aside>
 
           <div className="w-full max-w-[640px]">
-            {/* КАРТОЧКА НОВОСТИ - СТРОГО ЧЕРНАЯ */}
+            {/* КАРТОЧКА НОВОСТИ */}
             <div style={{ backgroundColor: '#050505', border: '1px solid #18181b', borderRadius: '24px', overflow: 'hidden', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
               
               {mounted && (
@@ -129,7 +129,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             )}
           </div>
 
-          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-4">
+          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-8">
             <div style={{ position: 'sticky',
     top: '32px',
     alignSelf: 'flex-start', height: '600px', width: '100%', background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
