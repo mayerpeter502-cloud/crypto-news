@@ -56,7 +56,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
         <div className="relative flex justify-center w-full max-w-[1400px] px-8 gap-16">
           
           {/* Яркие баннеры оставляем по бокам */}
-          <aside className="flex flex-col gap-4 w-[160px] shrink-0">
+          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-4">
             <div style={{ position: 'sticky',
     top: '32px',
     alignSelf: 'flex-start', height: '600px', width: '100%', background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
@@ -129,7 +129,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             )}
           </div>
 
-          <aside className="flex flex-col gap-4 w-[160px] shrink-0">
+          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-4">
             <div style={{ position: 'sticky',
     top: '32px',
     alignSelf: 'flex-start', height: '600px', width: '100%', background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
