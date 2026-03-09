@@ -3,8 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 
 export const dynamic = 'force-dynamic';
 
-const POST_INTERVAL_MS = 1.5 * 60 * 60 * 1000; 
-const DELETE_AFTER_MS = 48 * 60 * 60 * 1000;
+const POST_INTERVAL_MS = 1 * 60 * 60 * 1000;  // Интервал 1 час
+const DELETE_AFTER_MS = 24 * 60 * 60 * 1000; // Очистка 24 часа
 
 function escapeMarkdown(text: string) {
   return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&');
@@ -19,7 +19,7 @@ export async function GET() {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. Очистка (ТГ + БД) через 48 часов
+    // 1. Очистка (ТГ + БД) через 24 часа
     const expirationDate = new Date(Date.now() - DELETE_AFTER_MS).toISOString();
     const { data: expired } = await supabase
       .from('telegram_posts')
@@ -39,7 +39,7 @@ export async function GET() {
       }
     }
 
-    // 2. Проверка интервала 1.5 часа
+    // 2. Проверка интервала 1 час
     const { data: lastPost } = await supabase
       .from('telegram_posts')
       .select('created_at')
@@ -51,36 +51,39 @@ export async function GET() {
     if (lastPost) {
       const diff = Date.now() - new Date(lastPost.created_at).getTime();
       if (diff < POST_INTERVAL_MS) {
-        return NextResponse.json({ message: "Interval not met" });
+        return NextResponse.json({ message: "Wait for 1h interval" });
       }
     }
 
-    // 3. Выбор валидной новости из очереди
+    // 3. Выбор новости из очереди (с защитой от пустых полей)
     let { data: queuePost } = await supabase
       .from('telegram_posts')
       .select('*')
       .is('message_id', null)
       .not('title', 'is', null)
-      .not('news_id', 'is', null) // Защита от битых ссылок
+      .not('news_id', 'is', null)
       .order('created_at', { ascending: true })
       .limit(1)
       .maybeSingle();
 
-    // 4. Догрузка 20 новостей, если очередь пуста
+    // 4. Догрузка 30 новостей для запаса
     if (!queuePost) {
       const res = await fetch('https://min-api.cryptocompare.com/data/v2/news/?lang=EN');
       const cryptoData = await res.json();
       
       if (cryptoData.Data && Array.isArray(cryptoData.Data)) {
-        for (const n of cryptoData.Data.slice(0, 20)) {
+        for (const n of cryptoData.Data.slice(0, 30)) { // Запас 30 штук
           await supabase.from('telegram_posts').upsert({
             news_id: n.id.toString(),
             title: n.title,
-            link: n.url
+            link: n.url,
+            image_url: n.imageurl,
+            body: n.body,
+            categories: n.categories
           }, { onConflict: 'news_id' });
         }
       }
-      return NextResponse.json({ message: "Queue replenished" });
+      return NextResponse.json({ message: "Queue replenished with 30 news" });
     }
 
     // 5. Отправка в TG
