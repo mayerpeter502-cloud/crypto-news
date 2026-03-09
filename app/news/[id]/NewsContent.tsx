@@ -24,93 +24,110 @@ export default function NewsContent({ article, id, related = [] }: { article: an
     }
   };
 
-  if (!article) {
-    return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-10 text-center">
-        <h1 className="text-xl font-black mb-4 uppercase">Новость не найдена</h1>
-        <button onClick={() => router.push('/')} className="bg-[#ea580c] px-8 py-3 rounded-full font-black uppercase text-white">
-          На главную
-        </button>
-      </div>
-    );
-  }
+  if (!article) return null;
 
   return (
-    // ВОЗВРАЩАЕМ ЧЕРНЫЙ ФОН ДЛЯ ВСЕЙ СТРАНИЦЫ
     <div className="min-h-screen bg-black text-white font-sans">
+      {/* 1. ШАПКА (В ней уже должна быть кнопка переключения языка, если она есть в компоненте Header) */}
       <Header />
-      <PriceTicker />
+      
+      {/* 2. БЕГУЩАЯ СТРОКА С ОТСТУПОМ */}
+      <div className="pt-2">
+        <PriceTicker />
+      </div>
 
-      {/* ВОЗВРАЩАЕМ СВЕТЛО-СЕРЫЙ ФОН КОНТЕНТНОЙ ОБЛАСТИ (как на скриншотах) */}
-      <div style={{ backgroundColor: '#f4f4f5' }} className="flex flex-col items-center p-4 pt-8">
+      {/* 3. MARKET PULSE ЗАГОЛОВОК (как на главной) */}
+      <div className="flex flex-col items-center pt-8 pb-4 bg-white">
+        <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter text-black">
+          MARKET PULSE
+        </h2>
+        <p className="text-[10px] font-bold uppercase letter spacing tracking-[0.3em] text-zinc-400 mt-2">
+          REAL-TIME CRYPTO INTELLIGENCE
+        </p>
+      </div>
+
+      {/* 4. ОСНОВНОЙ КОНТЕНТ НА СЕРОМ ФОНЕ (чтобы не сливалось) */}
+      <div style={{ backgroundColor: '#f4f4f5' }} className="flex flex-col items-center p-4 pt-10">
         
-        <div className="relative flex justify-center w-full max-w-[1200px] gap-8">
+        <div className="relative flex justify-center w-full max-w-[1300px] gap-6">
           
-          {/* Яркие баннеры оставляем по бокам */}
-          <aside className="hidden lg:flex flex-col gap-4 w-[160px] shrink-0">
-            <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
-              РЕКЛАМА / ADVERTISING
+          {/* ЛЕВЫЙ РЕКЛАМНЫЙ БАННЕР */}
+          <aside className="hidden xl:flex flex-col w-[180px] shrink-0">
+            <div style={{ 
+              height: '600px', 
+              width: '100%', 
+              background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', 
+              borderRadius: '20px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              writingMode: 'vertical-rl', 
+              fontWeight: '900', 
+              color: 'black', 
+              fontSize: '24px',
+              boxShadow: '0 20px 40px rgba(234, 88, 12, 0.2)' 
+            }}>
+              ADVERTISING / REKLAMA
             </div>
           </aside>
 
-          <div className="w-full max-w-[640px]">
-            {/* КАРТОЧКА НОВОСТИ - СТРОГО ЧЕРНАЯ */}
-            <div style={{ backgroundColor: '#050505', border: '1px solid #18181b', borderRadius: '24px', overflow: 'hidden', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+          {/* КАРТОЧКА НОВОСТИ */}
+          <div className="w-full max-w-[680px]">
+            <div style={{ backgroundColor: '#050505', border: '1px solid #18181b', borderRadius: '32px', overflow: 'hidden', position: 'relative', boxShadow: '0 30px 60px -12px rgba(0, 0, 0, 0.4)' }}>
               
               {mounted && (
                 <button 
                   onClick={handleCopy}
-                  style={{ position: 'absolute', top: '20px', right: '20px', zIndex: 50, width: '40px', height: '40px', borderRadius: '9999px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backgroundColor: copied ? '#16a34a' : 'rgba(0,0,0,0.6)', color: 'white' }}
+                  className="absolute top-5 right-5 z-50 w-10 h-10 rounded-full border border-white/10 flex items-center justify-center transition-colors"
+                  style={{ backgroundColor: copied ? '#16a34a' : 'rgba(0,0,0,0.6)' }}
                 >
                   {copied ? '✅' : '🔗'}
                 </button>
               )}
 
-              <div style={{ padding: '16px' }}>
-                <div style={{ width: '100%', height: '280px', borderRadius: '18px', overflow: 'hidden', backgroundColor: '#18181b' }}>
-                  <img src={article.imageurl || article.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div className="p-4">
+                <div className="w-full h-[300px] rounded-2xl overflow-hidden bg-zinc-900">
+                  <img src={article.imageurl || article.image_url} alt="" className="w-full h-full object-cover" />
                 </div>
               </div>
               
-              <div style={{ padding: '32px', paddingTop: '8px', textAlign: 'center' }}>
-                <h1 style={{ color: '#ffffff', fontSize: '26px', fontStyle: 'italic', fontWeight: '900', lineHeight: '1.2', marginBottom: '20px', letterSpacing: '-0.025em', textTransform: 'uppercase' }}>
+              <div className="px-8 pb-10 pt-4 text-center">
+                <h1 className="text-2xl md:text-3xl font-black italic uppercase leading-tight mb-6 tracking-tight">
                   {article.title}
                 </h1>
 
-                <p style={{ color: '#a1a1aa', fontSize: '16px', lineHeight: '1.6', marginBottom: '32px', textAlign: 'left' }}>
+                <p className="text-zinc-400 text-lg leading-relaxed mb-10 text-left">
                   {article.body}
                 </p>
 
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                  <a 
-                    href={article.url || article.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '18px 50px', backgroundColor: '#ea580c', color: 'white', fontWeight: '900', fontSize: '13px', borderRadius: '9999px', textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.4em' }}
-                  >
-                    Читать оригинал
-                  </a>
-                </div>
+                <a 
+                  href={article.url || article.link} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="inline-block px-12 py-5 bg-[#ea580c] text-white font-black text-xs rounded-full uppercase tracking-[0.4em] hover:scale-105 transition-transform"
+                >
+                  Читать оригинал
+                </a>
               </div>
             </div>
 
             {/* ПОХОЖИЕ НОВОСТИ */}
             {related && related.length > 0 && (
-              <div style={{ marginTop: '48px' }}>
-                <h3 style={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '24px', color: '#ea580c', textAlign: 'left' }}>
+              <div className="mt-16">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] mb-6 text-[#ea580c] text-left ml-2">
                   Похожие новости
                 </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+                <div className="grid grid-cols-1 gap-3">
                   {related.map((item: any) => (
                     <div 
                       key={item.news_id} 
                       onClick={() => router.push(`/news/${item.news_id}`)}
-                      style={{ backgroundColor: '#050505', border: '1px solid #18181b', borderRadius: '16px', padding: '12px', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+                      className="bg-[#050505] border border-zinc-900 hover:border-[#ea580c] rounded-2xl p-3 flex items-center cursor-pointer transition-all"
                     >
-                      <div style={{ width: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden', marginRight: '16px', flexShrink: 0 }}>
-                        <img src={item.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <div className="w-16 h-16 rounded-xl overflow-hidden mr-4 shrink-0">
+                        <img src={item.image_url} alt="" className="w-full h-full object-cover" />
                       </div>
-                      <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.3', color: '#f4f4f5' }}>{item.title}</p>
+                      <p className="text-sm font-bold leading-snug text-zinc-100">{item.title}</p>
                     </div>
                   ))}
                 </div>
@@ -118,18 +135,32 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             )}
           </div>
 
-          <aside className="hidden lg:flex flex-col gap-4 w-[160px] shrink-0">
-            <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)' }}>
-              РЕКЛАМА / ADVERTISING
+          {/* ПРАВЫЙ РЕКЛАМНЫЙ БАННЕР */}
+          <aside className="hidden xl:flex flex-col w-[180px] shrink-0">
+            <div style={{ 
+              height: '600px', 
+              width: '100%', 
+              background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', 
+              borderRadius: '20px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              writingMode: 'vertical-rl', 
+              fontWeight: '900', 
+              color: 'black', 
+              fontSize: '24px',
+              boxShadow: '0 20px 40px rgba(234, 88, 12, 0.2)' 
+            }}>
+              ADVERTISING / REKLAMA
             </div>
           </aside>
         </div>
 
-        {/* КНОПКА НАЗАД - ТЕПЕРЬ ОНА ЧЕРНАЯ, ЧТОБЫ ВЫДЕЛЯТЬСЯ НА СЕРОМ ФОНЕ */}
-        <div style={{ marginTop: '56px', paddingBottom: '80px' }}>
+        {/* КНОПКА НА ГЛАВНУЮ */}
+        <div className="mt-16 mb-20">
           <button 
             onClick={() => router.push('/')} 
-            style={{ padding: '14px 32px', backgroundColor: '#000000', borderRadius: '9999px', color: '#ffffff', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer', border: 'none' }}
+            className="px-10 py-4 bg-black text-white rounded-full font-black uppercase text-[11px] tracking-[0.2em] border-none hover:bg-zinc-800 transition-colors"
           >
             ← На главную
           </button>
