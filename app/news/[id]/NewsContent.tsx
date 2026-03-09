@@ -53,7 +53,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
       {/* ВОЗВРАЩАЕМ СВЕТЛО-СЕРЫЙ ФОН КОНТЕНТНОЙ ОБЛАСТИ (как на скриншотах) */}
       <div style={{ backgroundColor: '#f4f4f5' }} className="flex flex-col items-center p-4 pt-8">
         
-        <div className="relative flex justify-center w-full max-w-[1200px] gap-12">
+        <div className="relative flex justify-center w-full max-w-[1200px] gap-16">
           
           {/* Яркие баннеры оставляем по бокам */}
           <aside className="flex flex-col gap-4 w-[160px] shrink-0">
