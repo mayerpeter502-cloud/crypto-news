@@ -88,7 +88,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
                     rel="noopener noreferrer" 
                     style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '18px 50px', backgroundColor: '#ea580c', color: 'white', fontWeight: '900', fontSize: '13px', borderRadius: '9999px', textDecoration: 'none', textTransform: 'uppercase', letterSpacing: '0.4em' }}
                   >
-                    Читать оригинал
+                    Read the original
                   </a>
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             {related && related.length > 0 && (
               <div style={{ marginTop: '48px' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '24px', color: '#ea580c', textAlign: 'left' }}>
-                  Похожие новости
+                  Similar news
                 </h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
                   {related.map((item: any) => (
@@ -131,7 +131,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             onClick={() => router.push('/')} 
             style={{ padding: '14px 32px', backgroundColor: '#000000', borderRadius: '9999px', color: '#ffffff', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.2em', cursor: 'pointer', border: 'none' }}
           >
-            ← На главную
+            ← Home
           </button>
         </div>
       </div>
