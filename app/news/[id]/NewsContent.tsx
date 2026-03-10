@@ -149,5 +149,14 @@ export default function NewsContent({ article, id, related = [] }: { article: an
         </div>
       </div>
     </div>
+// После закрывающего </div> центрального блока (после строки 166) добавьте:
+<div className="lg:hidden flex flex-col gap-4 p-4">
+  <div style={{ height: '300px', background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', color: 'black', fontSize: '20px' }}>
+    РЕКЛАМА / ADVERTISING
+  </div>
+  <div style={{ height: '300px', background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '900', color: 'black', fontSize: '20px' }}>
+    РЕКЛАМА / ADVERTISING
+  </div>
+</div>
   );
 }
