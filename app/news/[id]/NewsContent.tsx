@@ -27,7 +27,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
   if (!article) {
     return (
       <div>
-        <h1>Новость не найдена</h1>
+        <h1>No news found</h1>
         <button onClick={() => router.push('/')} className="bg-[#ea580c] px-8 py-3 rounded-full font-black uppercase text-white">
           Home
         </button>
