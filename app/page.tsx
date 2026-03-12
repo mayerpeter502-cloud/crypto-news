@@ -13,10 +13,8 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement>(null);
 
-  // Автоматический запуск синхронизации при каждом входе пользователя
-  useEffect(() => {
-    fetch('/api/telegram-sync').catch(() => {});
-  }, []);
+  // УДАЛЕНО: Автоматический запуск синхронизации при каждом входе пользователя
+  // Это предотвращает появление ошибок 403 в логах Vercel
 
   const filters = [
     { id: 'ALL', label: lang === 'EN' ? 'All News' : 'Все новости' },
