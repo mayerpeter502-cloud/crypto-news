@@ -1,74 +1,70 @@
 // lib/getNews.ts
-
-// Пока у нас нет домена, используем заглушку. 
-// Когда купите домен, замените 'pulse-news.vercel.app' на ваш адрес.
-const SITE_URL = 'https://crypto-news-swart.vercel.app/'; 
-const TELEGRAM_TOKEN = '8613979794:AAEg7YrdqPBw1m76-YPWRAQ4QAenVKXtFvw';
-const TELEGRAM_CHAT_ID = '@pulse_news_hub';
-
-export async function sendToTelegram(title: string, id: string) {
-  try {
-    const mySiteUrl = `${SITE_URL}/news/${id}`; 
-    
-    // Используем невидимый символ (U+200B), чтобы спрятать ссылку.
-    // Это уберет синюю надпись со скрепкой и любые текстовые URL.
-    const text = encodeURIComponent(
-      `🔥 <b>${title}</b><a href="${mySiteUrl}">&#8203;</a>`
-    );
-
-    const tgUrl = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage?` +
-      `chat_id=${TELEGRAM_CHAT_ID}&` +
-      `text=${text}&` +
-      `parse_mode=HTML`;
-    
-    await fetch(tgUrl);
-  } catch (e) {
-    console.error("Ошибка отправки в ТГ:", e);
-  }
-}
+import { createClient } from '@supabase/supabase-js';
 
 export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number = 0, category: string = 'ALL') {
+  const apiKey = process.env.NEXT_PUBLIC_CRYPTO_KEY || '';
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
   try {
-    let url = `https://min-api.cryptocompare.com/data/v2/news/?lang=EN`;
+    let url = `https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=${apiKey}`;
     if (category !== 'ALL') url += `&categories=${category}`;
     if (lastTimestamp) url += `&lts=${lastTimestamp}`;
 
-    const res = await fetch(url, { next: { revalidate: 60 } });
+    const res = await fetch(url, { cache: 'no-store' }); 
     const data = await res.json();
 
-    if (!data || !data.Data || !Array.isArray(data.Data)) return [];
+    if (data.Response === "Error") {
+      console.error("--- API ERROR: ---", data.Message);
+      return [];
+    }
 
-    return data.Data.map((article: any) => ({
-      id: article.id,
-      title: article.title || '',
-      description: article.body ? article.body.substring(0, 160) + "..." : (article.title || ""),
-      date: new Date(article.published_on * 1000).toLocaleDateString(lang === 'RU' ? 'ru-RU' : 'en-US'),
-      published_on: article.published_on,
-      image: article.imageurl || '',
-      url: article.url || '#'
-    }));
+    if (data && data.Data && Array.isArray(data.Data)) {
+      const articles = data.Data.map((article: any) => ({
+        id: article.id.toString(),
+        title: article.title || '',
+        description: article.body ? article.body.substring(0, 160) + "..." : "",
+        date: new Date(article.published_on * 1000).toLocaleDateString('en-US'),
+        published_on: article.published_on,
+        image: article.imageurl || '',
+        url: article.url || '#'
+      }));
+
+      // Сохранение в Supabase
+      if (supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder')) {
+        try {
+          const supabase = createClient(supabaseUrl, supabaseKey);
+          
+          const toSave = data.Data.slice(0, 30).map((n: any) => ({
+            news_id: n.id.toString(),
+            title: n.title,
+            link: n.url,
+            image_url: n.imageurl,
+            body: n.body,
+            categories: n.categories,
+            // Сбрасываем message_id, чтобы новые новости попали в очередь на публикацию
+            message_id: null 
+          }));
+          
+          // ВАЖНО: Используем await, чтобы Cron-скрипт дождался завершения записи
+          const { error } = await supabase.from('telegram_posts').upsert(toSave, { onConflict: 'news_id' });
+          
+          if (!error) console.log("--- DB: База успешно обновлена новыми новостями ---");
+          else console.error("--- DB ERROR: ---", error.message);
+          
+        } catch (dbErr) {
+          console.error("--- DB CRITICAL ERROR: ---", dbErr);
+        }
+      }
+
+      return articles;
+    }
+
+    return [];
   } catch (error) {
+    console.error("--- CRITICAL FETCH ERROR: ---", error);
     return [];
   }
 }
 
-// Функцию перевода Google оставляем без изменений как в прошлом шаге...
-export async function translateSingleText(text: string) {
-    if (!text || text.length < 3) return text;
-    const cacheKey = `trans_${text.substring(0, 30)}`;
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(cacheKey);
-      if (cached && !cached.includes("MYMEMORY WARNING")) return cached;
-    }
-    try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ru&dt=t&q=${encodeURIComponent(text)}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data && data[0] && data[0][0] && data[0][0][0]) {
-        const result = data[0][0][0];
-        if (typeof window !== 'undefined') localStorage.setItem(cacheKey, result);
-        return result;
-      }
-      return text;
-    } catch { return text; }
-}
+export async function translateSingleText(text: string) { return text; }
