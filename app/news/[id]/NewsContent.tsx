@@ -1,6 +1,6 @@
 'use client';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
 import Header from '@/components/Header';
 import PriceTicker from '@/components/PriceTicker';
 
@@ -19,243 +19,120 @@ export default function NewsContent({ article, id, related = [] }: { article: an
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Ошибка:', err);
-    }
+    } catch (err) { console.error('Ошибка:', err); }
   };
   
-  if (!article) {
-    return (
-      <div>
-        <h1>No news found</h1>
-        <button onClick={() => router.push('/')} className="bg-[#ea580c] px-8 py-3 rounded-full font-black uppercase text-white">
-          Home
-        </button>
-      </div>
-    );
-  }
+  if (!article) return <div className="p-20 text-center"><h1 style={{color: 'black'}}>No news found</h1></div>;
   
   return (
-    <div>
+    // ГЛАВНЫЙ ФОН САЙТА — СВЕТЛО-СЕРЫЙ (как на главной)
+    <main style={{ backgroundColor: '#f4f4f5', minHeight: '100vh' }}>
       <Header />
       <PriceTicker />
       
-      {/* ВОЗВРАЩАЕМ БЕЛЫЙ ФОН ДЛЯ ВСЕЙ СТРАНИЦЫ */}
-      <div style={{ backgroundColor: '#ffffff' }}>
-        <h1 style={{ textAlign: 'center', paddingTop: '24px', fontSize: '24px', fontWeight: '900', fontStyle: 'italic', letterSpacing: '0.1em' }}>
+      {/* ВЕРХНИЙ БЛОК (MARKET PULSE) */}
+      <div style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e4e4e7', textAlign: 'center', padding: '24px 0' }}>
+        <h1 style={{ color: '#000000', fontSize: '24px', fontWeight: '900', fontStyle: 'italic', letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
           MARKET PULSE
         </h1>
-        <p style={{ textAlign: 'center', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.3em', paddingBottom: '24px', color: '#52525b' }}>
+        <p style={{ color: '#71717a', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.3em', marginTop: '8px' }}>
           REAL-TIME CRYPTO INTELLIGENCE
         </p>
       </div>
-      
-      {/* ВОЗВРАЩАЕМ СВЕТЛО-СЕРЫЙ ФОН КОНТЕНТНОЙ ОБЛАСТИ (как на скриншотах) */}
-      <div style={{ backgroundColor: '#f4f4f5' }} className="flex flex-col items-center p-4 pt-8">
-        <div className="relative flex justify-center w-full max-w-[1400px] gap-16">
-          
-          {/* Яркие баннеры оставляем по бокам */}
-          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-8">
-            <div style={{ 
-              position: 'sticky',
-              top: '32px',
-              alignSelf: 'flex-start',
-              height: '600px', 
-              width: '100%', 
-              background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', 
-              borderRadius: '16px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              writingMode: 'vertical-rl', 
-              textOrientation: 'mixed', 
-              fontWeight: '900', 
-              color: 'black', 
-              fontSize: '20px',
-              boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)',
-              border: '2px solid rgba(255,255,255,0.2)' 
-            }}>
-              РЕКЛАМА / ADVERTISING
-            </div>
-          </aside>
 
-          <div className="w-full max-w-[640px]">
-            {/* КАРТОЧКА НОВОСТИ */}
-            <div style={{ 
-              backgroundColor: '#050505', 
-              border: '1px solid #18181b', 
-              borderRadius: '24px', 
-              overflow: 'hidden', 
-              position: 'relative', 
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
-            }}>
-              
-              {mounted && (
-                <button 
-                  onClick={handleCopy}
-                  style={{ 
-                    position: 'absolute', 
-                    top: '20px', 
-                    right: '20px', 
-                    zIndex: 50, 
-                    width: '40px', 
-                    height: '40px', 
-                    borderRadius: '9999px', 
-                    border: '1px solid rgba(255,255,255,0.1)', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    cursor: 'pointer', 
-                    backgroundColor: copied ? '#16a34a' : 'rgba(0,0,0,0.6)', 
-                    color: 'white' 
-                  }}
-                >
-                  {copied ? '✅' : '🔗'}
-                </button>
-              )}
-
-              <div style={{ padding: '16px' }}>
-                <div style={{ width: '100%', height: '280px', borderRadius: '18px', overflow: 'hidden', backgroundColor: '#18181b' }}>
-                  <img src={article.imageurl || article.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-              </div>
-              
-              <div style={{ padding: '32px', paddingTop: '8px', textAlign: 'center' }}>
-                <h1 style={{ 
-                  color: '#ffffff', 
-                  fontSize: '26px', 
-                  fontStyle: 'italic', 
-                  fontWeight: '900', 
-                  lineHeight: '1.2', 
-                  marginBottom: '20px', 
-                  letterSpacing: '-0.025em', 
-                  textTransform: 'uppercase' 
-                }}>
-                  {article.title}
-                </h1>
-
-                <p style={{ 
-                  color: '#a1a1aa', 
-                  fontSize: '16px', 
-                  lineHeight: '1.6', 
-                  marginBottom: '32px', 
-                  textAlign: 'left' 
-                }}>
-                  {article.body}
-                </p>
-
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-                  <a 
-                    href={article.url || article.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    style={{ 
-                      display: 'inline-flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center', 
-                      padding: '18px 50px', 
-                      backgroundColor: '#ea580c', 
-                      color: 'white', 
-                      fontWeight: '900', 
-                      fontSize: '13px', 
-                      borderRadius: '9999px', 
-                      textDecoration: 'none', 
-                      textTransform: 'uppercase', 
-                      letterSpacing: '0.4em' 
-                    }}
-                  >
-                    Read the original
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* ПОХОЖИЕ НОВОСТИ */}
-            {related && related.length > 0 && (
-              <div style={{ marginTop: '48px' }}>
-                <h3 style={{ 
-                  fontSize: '12px', 
-                  fontWeight: '900', 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '0.3em', 
-                  marginBottom: '24px', 
-                  color: '#ea580c', 
-                  textAlign: 'left' 
-                }}>
-                  Similar news
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
-                  {related.map((item: any) => (
-                    <div 
-                      key={item.news_id} 
-                      onClick={() => router.push(`/news/${item.news_id}`)}
-                      style={{ 
-                        backgroundColor: '#050505', 
-                        border: '1px solid #18181b', 
-                        borderRadius: '16px', 
-                        padding: '12px', 
-                        display: 'flex',  
-                        alignItems: 'center', 
-                        cursor: 'pointer' 
-                      }}
-                    >
-                      <div style={{ width: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden', marginRight: '16px', flexShrink: 0 }}>
-                        <img src={item.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      </div>
-                      <p style={{ fontSize: '14px', fontWeight: '700', lineHeight: '1.3', color: '#f4f4f5' }}>{item.title}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <aside className="flex flex-col gap-4 w-[160px] shrink-0 mx-8">
-            <div style={{ 
-              position: 'sticky',
-              top: '32px',
-              alignSelf: 'flex-start',
-              height: '600px', 
-              width: '100%', 
-              background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', 
-              borderRadius: '16px', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              writingMode: 'vertical-rl', 
-              textOrientation: 'mixed', 
-              fontWeight: '900', 
-              color: 'black', 
-              fontSize: '20px',
-              boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)',
-              border: '2px solid rgba(255,255,255,0.2)' 
-            }}>
-              РЕКЛАМА / ADVERTISING
-            </div>
-          </aside>
-        </div>
-
-        {/* КНОПКА НАЗАД - ТЕПЕРЬ ОНА ЧЕРНАЯ, ЧТОБЫ ВЫДЕЛЯТЬСЯ НА СЕРОМ ФОНЕ */}
-        <div style={{ marginTop: '56px', paddingBottom: '80px' }}>
-          <button 
-            onClick={() => router.push('/')} 
-            style={{ 
-              padding: '14px 32px', 
-              backgroundColor: '#000000', 
-              borderRadius: '9999px', 
-              color: '#ffffff', 
-              fontSize: '12px', 
-              fontWeight: '900', 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.2em', 
-              cursor: 'pointer', 
-              border: 'none' 
-            }}
-          >
-            ← Home
-          </button>
+      {/* МОБИЛЬНЫЙ БАННЕР 1 (ВЕРХНИЙ) */}
+      <div className="block xl:hidden w-full px-4 pt-4">
+        <div style={{ height: '120px', background: 'linear-gradient(90deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(234, 88, 12, 0.2)' }}>
+          <span style={{ color: 'black', fontWeight: '900', fontSize: '10px', letterSpacing: '0.4em' }}>ADVERTISING</span>
         </div>
       </div>
-    </div>
+
+      <div className="flex justify-center w-full max-w-[1400px] mx-auto xl:gap-[64px] px-0 md:px-6 pt-4 md:pt-12 items-start relative">
+        
+        {/* ЛЕВАЯ РЕКЛАМА (ПК) */}
+        <aside className="hidden xl:flex w-[160px] shrink-0 sticky top-[100px]">
+          <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)', border: '2px solid rgba(255,255,255,0.2)' }}>
+            ADVERTISING
+          </div>
+        </aside>
+
+        <div className="w-full max-w-[640px] shrink-0">
+          {/* КАРТОЧКА НОВОСТИ (ТЕМНАЯ) */}
+          <div style={{ backgroundColor: '#050505' }} className="md:rounded-[24px] overflow-hidden relative shadow-2xl border-x md:border border-zinc-900">
+            {mounted && (
+              <button onClick={handleCopy} className={`absolute top-5 right-5 z-50 w-10 h-10 rounded-full flex items-center justify-center ${copied ? 'bg-green-600' : 'bg-black/60'} text-white border border-white/10`}>
+                {copied ? '✅' : '🔗'}
+              </button>
+            )}
+            
+            <div className="p-0 md:p-4">
+              <div className="w-full h-[250px] md:h-[320px] md:rounded-xl overflow-hidden bg-zinc-900">
+                <img src={article.imageurl || article.image_url} alt="" className="w-full h-full object-cover" />
+              </div>
+            </div>
+
+            <div className="p-6 md:p-10 pt-4 text-center">
+              <h1 style={{ color: '#ffffff' }} className="text-xl md:text-3xl font-black italic leading-tight mb-6 uppercase tracking-tight">
+                {article.title}
+              </h1>
+              <p style={{ color: '#a1a1aa' }} className="text-sm md:text-lg font-medium leading-relaxed mb-8 text-left">
+                {article.body}
+              </p>
+              <div className="flex justify-center pb-4">
+                <a href={article.url || article.link} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }} className="px-10 py-4 bg-[#ea580c] text-white font-black text-xs rounded-full uppercase tracking-[0.3em] active:scale-95 transition-transform">
+                  Read original
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* МОБИЛЬНЫЙ БАННЕР 2 (НИЖНИЙ) */}
+          <div className="block xl:hidden w-full px-4 py-8">
+            <div style={{ height: '120px', background: 'linear-gradient(90deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(234, 88, 12, 0.2)' }}>
+              <span style={{ color: 'black', fontWeight: '900', fontSize: '10px', letterSpacing: '0.4em' }}>ADVERTISING</span>
+            </div>
+          </div>
+
+          {/* ПОХОЖИЕ НОВОСТИ */}
+          {related && related.length > 0 && (
+            <div className="mt-12 px-4 md:px-0">
+              <h3 style={{ color: '#ea580c', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '24px' }}>
+                Similar news
+              </h3>
+              <div className="grid grid-cols-1 gap-3">
+                {related.map((item: any) => (
+                  <div key={item.news_id} onClick={() => router.push(`/news/${item.news_id}`)} style={{ backgroundColor: '#050505' }} className="border border-zinc-900 rounded-xl p-3 flex items-center cursor-pointer hover:border-orange-600/50 transition-all">
+                    <div className="w-16 h-16 rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800">
+                      <img src={item.image_url} alt="" className="w-full h-full object-cover" />
+                    </div>
+                    <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', margin: 0 }} className="line-clamp-2 leading-snug">
+                      {item.title}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* КНОПКА НАЗАД */}
+          <div className="mt-12 pb-20 text-center">
+            <button 
+              onClick={() => router.push('/')} 
+              style={{ backgroundColor: '#000000', color: '#ffffff' }} 
+              className="px-10 py-4 text-[10px] font-black uppercase tracking-[0.2em] rounded-full hover:bg-zinc-800 transition-colors"
+            >
+              ← Back to pulse
+            </button>
+          </div>
+        </div>
+
+        {/* ПРАВАЯ РЕКЛАМА (ПК) */}
+        <aside className="hidden xl:flex w-[160px] shrink-0 sticky top-[100px]">
+          <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)', border: '2px solid rgba(255,255,255,0.2)' }}>
+            ADVERTISING
+          </div>
+        </aside>
+      </div>
+    </main>
   );
 }

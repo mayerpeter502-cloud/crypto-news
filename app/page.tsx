@@ -1,6 +1,5 @@
 'use client';
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import NewsCard from '@/components/NewsCard';
 import PriceTicker from '@/components/PriceTicker';
 import Header from '@/components/Header';
@@ -8,79 +7,123 @@ import { getCryptoNews } from '@/lib/getNews';
 
 export default function Home() {
   const [news, setNews] = useState<any[]>([]);
-  const [lang, setLang] = useState('EN');
   const [category, setCategory] = useState('ALL');
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef<HTMLDivElement>(null);
 
   const filters = [
-    { id: 'ALL', label: lang === 'EN' ? 'All News' : 'Все новости' },
+    { id: 'ALL', label: 'All News' },
     { id: 'BTC', label: 'Bitcoin' },
     { id: 'ETH', label: 'Ethereum' },
     { id: 'SOL', label: 'Solana' },
-    { id: 'REGULATION', label: lang === 'EN' ? 'Regulation' : 'Законы' }
+    { id: 'REGULATION', label: 'Regulation' }
   ];
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        // Прямой вызов функции
-        const data = await getCryptoNews(lang, 0, category);
-        if (data && Array.isArray(data)) {
-          setNews(data);
-        }
-      } catch (err) {
-        console.error("Error loading news:", err);
-      } finally {
-        setLoading(false);
+  const loadNews = async (isInitial: boolean = false) => {
+    if (isInitial) setLoading(true);
+    try {
+      const lastTimestamp = !isInitial && news.length > 0 ? news[news.length - 1].published_on : 0;
+      const newData = await getCryptoNews('EN', lastTimestamp, category);
+      if (newData && newData.length > 0) {
+        setNews(prev => isInitial ? newData : [...prev, ...newData]);
+      } else {
+        setHasMore(false);
       }
-    }
-    loadData();
-  }, [category, lang]);
+    } catch (e) { console.error(e); } finally { setLoading(false); }
+  };
+
+  useEffect(() => {
+    setNews([]);
+    setHasMore(true);
+    loadNews(true);
+  }, [category]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && !loading && hasMore) loadNews(false);
+    }, { threshold: 0.1 });
+    if (loaderRef.current) observer.observe(loaderRef.current);
+    return () => observer.disconnect();
+  }, [loading, hasMore, news]);
 
   return (
-    <main className="min-h-screen bg-black text-white pb-20">
-      <Header setLang={setLang} currentLang={lang} />
+    <main className="min-h-screen" style={{ backgroundColor: '#f4f4f5' }}>
+      <Header />
       <PriceTicker />
 
-      <div className="max-w-4xl mx-auto px-4 mt-8">
-        <div className="mb-12">
-          <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter mb-2">
-            PULSE <span className="text-orange-600">TERMINAL</span>
-          </h1>
-          <p className="text-zinc-500 text-xs font-bold uppercase tracking-[0.3em] mb-8">
-            {lang === 'EN' ? 'Neural Market Intelligence 24/7' : 'Крипто-аналитика в реальном времени'}
-          </p>
-          
-          <div className="flex w-full gap-2 overflow-x-auto pb-4">
+      {/* ШАПКА */}
+      <div style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e4e4e7' }}>
+        <h1 style={{ textAlign: 'center', paddingTop: '24px', fontSize: '24px', fontWeight: '900', fontStyle: 'italic', letterSpacing: '0.1em', color: '#000000', textTransform: 'uppercase', margin: 0 }}>
+          MARKET PULSE
+        </h1>
+        <p style={{ textAlign: 'center', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.3em', paddingBottom: '24px', color: '#52525b', margin: 0 }}>
+          REAL-TIME CRYPTO INTELLIGENCE
+        </p>
+      </div>
+
+      {/* КОНТЕЙНЕР С БАННЕРАМИ */}
+      <div className="flex justify-center w-full max-w-[1400px] mx-auto px-4 md:px-8 pt-8 items-start relative gap-8">
+        
+        {/* ЛЕВАЯ РЕКЛАМА (ПК) */}
+        <aside className="hidden xl:block sticky top-[100px]" style={{ width: '160px', minWidth: '160px', flexShrink: 0 }}>
+          <div style={{ 
+            height: '600px', width: '100%', 
+            background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', 
+            borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px'
+          }}>
+            ADVERTISING
+          </div>
+        </aside>
+
+        {/* ЦЕНТРАЛЬНАЯ ЛЕНТА */}
+        <div className="w-full max-w-[640px] flex-shrink-0">
+          <div className="flex w-full gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
             {filters.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setCategory(f.id)}
-                className={`flex-1 py-3 px-6 rounded text-[10px] font-black uppercase tracking-wider transition-all border whitespace-nowrap ${
-                  category === f.id 
-                  ? 'bg-orange-600 border-orange-600 text-white' 
-                  : 'bg-zinc-900 border-zinc-900 text-zinc-500'
+                className={`flex-1 py-3 px-1 rounded-lg text-[10px] font-black uppercase tracking-wider border text-center whitespace-nowrap ${
+                  category === f.id ? 'bg-black border-black text-white shadow-lg' : 'bg-white border-zinc-200 text-zinc-400'
                 }`}
               >
                 {f.label}
               </button>
             ))}
           </div>
-        </div>
 
-        {loading ? (
-          <div className="py-20 text-center text-orange-600 animate-pulse font-bold uppercase text-xs">
-            {lang === 'EN' ? 'Loading...' : 'Загрузка...'}
-          </div>
-        ) : (
           <div className="flex flex-col gap-4">
             {news.map((item, index) => (
-              <NewsCard key={`${item.id}-${index}`} {...item} currentLang={lang} />
+              <NewsCard key={`${item.id}-${index}`} {...item} currentLang="EN" />
             ))}
           </div>
-        )}
+
+          <div ref={loaderRef} className="h-24 flex justify-center items-center">
+            {hasMore && !loading && (
+              <div className="w-6 h-6 border-2 border-[#ea580c] border-t-transparent rounded-full animate-spin"></div>
+            )}
+          </div>
+        </div>
+
+        {/* ПРАВАЯ РЕКЛАМА (ПК) */}
+        <aside className="hidden xl:block sticky top-[100px]" style={{ width: '160px', minWidth: '160px', flexShrink: 0 }}>
+          <div style={{ 
+            height: '600px', width: '100%', 
+            background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', 
+            borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+            writingMode: 'vertical-rl', textOrientation: 'mixed', fontWeight: '900', color: 'black', fontSize: '20px'
+          }}>
+            ADVERTISING
+          </div>
+        </aside>
+
       </div>
+
+      <style jsx>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </main>
   );
 }
