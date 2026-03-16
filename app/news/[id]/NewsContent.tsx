@@ -9,9 +9,31 @@ export default function NewsContent({ article, id, related = [] }: { article: an
   const [copied, setCopied] = useState(false);
   const [mounted, setMounted] = useState(false);
   
+  // Состояния для всплывающих баннеров
+  const [showTopAd, setShowTopAd] = useState(false);
+  const [showBottomAd, setShowBottomAd] = useState(false);
+  
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Логика таймеров для баннеров (15с и 25с)
+  useEffect(() => {
+    let topTimer: NodeJS.Timeout;
+    let bottomTimer: NodeJS.Timeout;
+
+    if (!showTopAd) {
+      topTimer = setTimeout(() => setShowTopAd(true), 15000);
+    }
+    if (!showBottomAd) {
+      bottomTimer = setTimeout(() => setShowBottomAd(true), 25000);
+    }
+
+    return () => {
+      clearTimeout(topTimer);
+      clearTimeout(bottomTimer);
+    };
+  }, [showTopAd, showBottomAd]);
   
   const handleCopy = async () => {
     try {
@@ -25,12 +47,53 @@ export default function NewsContent({ article, id, related = [] }: { article: an
   if (!article) return <div className="p-20 text-center"><h1 style={{color: 'black'}}>No news found</h1></div>;
   
   return (
-    // ГЛАВНЫЙ ФОН САЙТА — СВЕТЛО-СЕРЫЙ (как на главной)
     <main style={{ backgroundColor: '#f4f4f5', minHeight: '100vh' }}>
+      
+      {/* ВЕРХНИЙ ВСПЛЫВАЮЩИЙ БАННЕР */}
+      {showTopAd && (
+        <div style={{ position: 'fixed', top: '8px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 9999, padding: '0 16px', pointerEvents: 'none' }}>
+          <div style={{ 
+            pointerEvents: 'auto', width: '100%', maxWidth: '850px', height: '60px',
+            background: 'linear-gradient(90deg, #ea580c 0%, #facc15 100%)',
+            borderRadius: '12px', border: '2px solid rgba(255,255,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            animation: 'slideDownAd 0.5s ease-out forwards'
+          }}>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 40px' }}>
+              <span style={{ color: 'black', fontWeight: 900, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center' }}>
+                Premium Crypto Intelligence — Join the Terminal Elite
+              </span>
+            </div>
+            <button onClick={() => setShowTopAd(false)} style={{ marginRight: '12px', width: '32px', height: '32px', background: 'black', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '20px' }}>×</button>
+          </div>
+        </div>
+      )}
+
+      {/* НИЖНИЙ ВСПЛЫВАЮЩИЙ БАННЕР */}
+      {showBottomAd && (
+        <div style={{ position: 'fixed', bottom: '16px', left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 9999, padding: '0 16px', pointerEvents: 'none' }}>
+          <div style={{ 
+            pointerEvents: 'auto', width: '100%', maxWidth: '850px', height: '60px',
+            background: 'linear-gradient(90deg, #facc15 0%, #ea580c 100%)',
+            borderRadius: '12px', border: '2px solid rgba(255,255,255,0.3)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            boxShadow: '0 -10px 30px rgba(0,0,0,0.2)',
+            animation: 'slideUpAd 0.5s ease-out forwards'
+          }}>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '0 40px' }}>
+              <span style={{ color: 'black', fontWeight: 900, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.1em', textAlign: 'center' }}>
+                Trade Smarter with AI Signals. Connect Wallet to start.
+              </span>
+            </div>
+            <button onClick={() => setShowBottomAd(false)} style={{ marginRight: '12px', width: '32px', height: '32px', background: 'black', color: 'white', border: 'none', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '20px' }}>×</button>
+          </div>
+        </div>
+      )}
+
       <Header />
       <PriceTicker />
       
-      {/* ВЕРХНИЙ БЛОК (MARKET PULSE) */}
       <div style={{ backgroundColor: '#ffffff', borderBottom: '1px solid #e4e4e7', textAlign: 'center', padding: '24px 0' }}>
         <h1 style={{ color: '#000000', fontSize: '24px', fontWeight: '900', fontStyle: 'italic', letterSpacing: '0.1em', textTransform: 'uppercase', margin: 0 }}>
           MARKET PULSE
@@ -40,24 +103,10 @@ export default function NewsContent({ article, id, related = [] }: { article: an
         </p>
       </div>
 
-      {/* МОБИЛЬНЫЙ БАННЕР 1 (ВЕРХНИЙ) */}
-      <div className="block xl:hidden w-full px-4 pt-4">
-        <div style={{ height: '120px', background: 'linear-gradient(90deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(234, 88, 12, 0.2)' }}>
-          <span style={{ color: 'black', fontWeight: '900', fontSize: '10px', letterSpacing: '0.4em' }}>ADVERTISING</span>
-        </div>
-      </div>
-
-      <div className="flex justify-center w-full max-w-[1400px] mx-auto xl:gap-[64px] px-0 md:px-6 pt-4 md:pt-12 items-start relative">
-        
-        {/* ЛЕВАЯ РЕКЛАМА (ПК) */}
-        <aside className="hidden xl:flex w-[160px] shrink-0 sticky top-[100px]">
-          <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #ea580c 0%, #facc15 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)', border: '2px solid rgba(255,255,255,0.2)' }}>
-            ADVERTISING
-          </div>
-        </aside>
-
-        <div className="w-full max-w-[640px] shrink-0">
-          {/* КАРТОЧКА НОВОСТИ (ТЕМНАЯ) */}
+      {/* Основной контейнер новости расширен до 850px для симметрии с баннерами */}
+      <div className="flex justify-center w-full px-4 pt-4 md:pt-12">
+        <div className="w-full" style={{ maxWidth: '850px' }}>
+          
           <div style={{ backgroundColor: '#050505' }} className="md:rounded-[24px] overflow-hidden relative shadow-2xl border-x md:border border-zinc-900">
             {mounted && (
               <button onClick={handleCopy} className={`absolute top-5 right-5 z-50 w-10 h-10 rounded-full flex items-center justify-center ${copied ? 'bg-green-600' : 'bg-black/60'} text-white border border-white/10`}>
@@ -66,7 +115,7 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             )}
             
             <div className="p-0 md:p-4">
-              <div className="w-full h-[250px] md:h-[320px] md:rounded-xl overflow-hidden bg-zinc-900">
+              <div className="w-full h-[250px] md:h-[450px] md:rounded-xl overflow-hidden bg-zinc-900">
                 <img src={article.imageurl || article.image_url} alt="" className="w-full h-full object-cover" />
               </div>
             </div>
@@ -86,16 +135,9 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             </div>
           </div>
 
-          {/* МОБИЛЬНЫЙ БАННЕР 2 (НИЖНИЙ) */}
-          <div className="block xl:hidden w-full px-4 py-8">
-            <div style={{ height: '120px', background: 'linear-gradient(90deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 15px rgba(234, 88, 12, 0.2)' }}>
-              <span style={{ color: 'black', fontWeight: '900', fontSize: '10px', letterSpacing: '0.4em' }}>ADVERTISING</span>
-            </div>
-          </div>
-
           {/* ПОХОЖИЕ НОВОСТИ */}
           {related && related.length > 0 && (
-            <div className="mt-12 px-4 md:px-0">
+            <div className="mt-12">
               <h3 style={{ color: '#ea580c', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '24px' }}>
                 Similar news
               </h3>
@@ -125,14 +167,12 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             </button>
           </div>
         </div>
-
-        {/* ПРАВАЯ РЕКЛАМА (ПК) */}
-        <aside className="hidden xl:flex w-[160px] shrink-0 sticky top-[100px]">
-          <div style={{ height: '600px', width: '100%', background: 'linear-gradient(180deg, #facc15 0%, #ea580c 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', writingMode: 'vertical-rl', fontWeight: '900', color: 'black', fontSize: '20px', boxShadow: '0 0 20px rgba(234, 88, 12, 0.3)', border: '2px solid rgba(255,255,255,0.2)' }}>
-            ADVERTISING
-          </div>
-        </aside>
       </div>
+
+      <style jsx>{`
+        @keyframes slideDownAd { from { transform: translateY(-100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slideUpAd { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      `}</style>
     </main>
   );
 }

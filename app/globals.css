@@ -2,13 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #f4f4f7; /* Светло-серый фон как на новостных порталах */
-  color: #000;
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  background-color: #f4f4f7;
 }
 
-/* Сохраняем вашу бегущую строку черной для контраста */
+/* Стили бегущей строки */
 .animate-marquee {
   display: flex;
   width: max-content;
@@ -20,13 +22,6 @@ body {
   100% { transform: translateX(-50%); }
 }
 
-.animate-marquee {
-  display: flex;
-  width: max-content;
-  animation: marquee 25s linear infinite;
-}
-
-/* Стили для элементов внутри строки */
 .ticker-item {
   display: flex;
   align-items: center;

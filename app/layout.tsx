@@ -28,11 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       {/* 3. Применяем шрифт Inter ко всему сайту через className */}
-      <body
-        className={`${inter.className} antialiased`}
-      >
-        {children}
-      </body>
+      <body className={inter.className}>
+  {children} {/* Шапка должна быть внутри children или прямо здесь, но БЕЗ оберток с max-w */}
+</body>
     </html>
   );
 }

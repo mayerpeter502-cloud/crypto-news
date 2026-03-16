@@ -42,13 +42,6 @@ export default function NewsCard(props: any) {
   };
 
   return (
-    <div className="relative group w-full mb-4" style={{ height: '160px' }}>
-      <button 
-        onClick={handleAction}
-        className="absolute top-3 right-3 px-3 py-1.5 rounded-lg text-[10px] bg-orange-600 hover:bg-orange-500 font-black uppercase tracking-widest z-50 shadow-2xl transition-all active:scale-95 text-white ring-2 ring-black/50"
-      >
-        ПОДПИСАТЬСЯ
-      </button>
 
       <a 
         href={props.url} target="_blank" rel="noopener noreferrer"
@@ -76,6 +69,5 @@ export default function NewsCard(props: any) {
           </p>
         </div>
       </a>
-    </div>
   );
 }
