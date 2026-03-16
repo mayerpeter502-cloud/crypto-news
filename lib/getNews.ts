@@ -35,7 +35,7 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
         try {
           const supabase = createClient(supabaseUrl, supabaseKey);
           
-          const toSave = data.Data.slice(0, 30).map((n: any) => ({
+          const toSave = data.Data.slice(0, 100).map((n: any) => ({
             news_id: n.id.toString(),
             title: n.title,
             link: n.url,

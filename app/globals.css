@@ -8,9 +8,10 @@ html, body {
   width: 100%;
   overflow-x: hidden;
   background-color: #f4f4f7;
+  color: #000;
 }
 
-/* Стили бегущей строки */
+/* Бегущая строка */
 .animate-marquee {
   display: flex;
   width: max-content;
