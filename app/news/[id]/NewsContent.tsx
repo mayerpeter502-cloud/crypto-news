@@ -141,16 +141,20 @@ export default function NewsContent({ article, id, related = [] }: { article: an
     <h3 style={{ color: '#ea580c', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '24px' }}>
       Similar news
     </h3>
+    {/* Увеличили gap для более явного разделения */}
     <div className="grid grid-cols-1 gap-2">
       {related.map((item: any) => (
         <div 
           key={item.news_id} 
           onClick={() => router.push(`/news/${item.news_id}`)} 
-          style={{ backgroundColor: '#050505' }} 
-          className="border border-zinc-900 rounded-lg p-2 flex items-center cursor-pointer hover:border-orange-600/50 transition-all w-full"
+          style={{ 
+            backgroundColor: '#050505',
+            borderBottom: '2px solid #f4f4f5' // Разделитель цветом фона сайта
+          }} 
+          className="rounded-xl p-4 flex items-center cursor-pointer hover:border-orange-600/50 transition-all w-full"
         >
-          {/* УМЕНЬШЕННЫЙ И ФИКСИРОВАННЫЙ КОНТЕЙНЕР (32x32px) */}
-          <div className="w-8 h-8 min-w-[32px] min-h-[32px] rounded-md overflow-hidden mr-3 shrink-0 bg-zinc-800 relative">
+          {/* Увеличенный масштаб картинки (48x48 вместо 32x32) */}
+          <div className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800 relative">
             <img 
               src={item.image_url} 
               alt="" 
@@ -158,7 +162,8 @@ export default function NewsContent({ article, id, related = [] }: { article: an
             />
           </div>
           
-          <p style={{ color: '#ffffff', fontSize: '12px', fontWeight: '600', margin: 0 }} className="line-clamp-1 leading-none flex-1">
+          {/* Увеличенный текст заголовка */}
+          <p style={{ color: '#ffffff', fontSize: '15px', fontWeight: '700', margin: 0 }} className="line-clamp-2 leading-tight flex-1">
             {item.title}
           </p>
         </div>
