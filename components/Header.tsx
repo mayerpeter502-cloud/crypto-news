@@ -25,27 +25,27 @@ export default function Header() {
     <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-14 flex items-center justify-center">
       <div className="w-[98%] max-w-[1440px] flex items-center justify-between px-2 gap-4">
         
-        <div className="flex items-center">
-          {/* ЛОГОТИП */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-7 h-7 rounded bg-orange-600 flex items-center justify-center overflow-hidden">
-              <img src="/favicon.ico" alt="L" className="w-full h-full object-cover" />
-            </div>
-            <h1 className="text-white font-black text-lg tracking-tighter uppercase leading-none">
-              CRYPTO<span className="text-orange-600">FLOW</span>
-            </h1>
-          </div>
+        {/* Добавляем gap-8, чтобы создать принудительный зазор между элементами внутри */}
+<div className="flex items-center gap-8 flex-1">
+          {/* БЛОК ЛОГОТИПА */}
+  <div className="flex items-center gap-3 shrink-0">
+    <div className="w-7 h-7 rounded bg-orange-600 flex items-center justify-center overflow-hidden">
+      <img src="/favicon.ico" alt="L" className="w-full h-full object-cover" />
+    </div>
+    <h1 className="text-white font-black text-lg tracking-tighter uppercase leading-none">
+      CRYPTO<span className="text-orange-600">FLOW</span>
+    </h1>
+  </div>
 
-          {/* Контейнер поиска: добавили ml-6 (margin-left) */}
-<div className="relative ml-6 w-full max-w-[160px] group flex items-center">
-  <input
-    type="text"
-    placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="w-full bg-zinc-900/40 border border-zinc-800 rounded-lg py-[4px] pl-3 pr-9 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-600/40 transition-all"
-            />
+          {/* СТРОКА ПОИСКА */}
+  <div className="relative w-full max-w-[160px] group flex items-center">
+    <input
+      type="text"
+      placeholder="Search..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="w-full bg-zinc-900/40 border border-zinc-800 rounded-lg py-[3px] pl-2.5 pr-8 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-600/40 transition-all"
+    />
             {/* КНОПКА ЛУПЫ: теперь строго СПРАВА */}
             <button 
               onClick={handleSearch}
