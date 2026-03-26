@@ -1,30 +1,42 @@
 'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-// Список монет для поиска (позже можно вынести в отдельный JSON)
+// Список монет для подсказок
 const COINS = [
   { name: 'Bitcoin', ticker: 'BTC', synonyms: ['биткоин', 'биток', 'btc'] },
   { name: 'Ethereum', ticker: 'ETH', synonyms: ['эфир', 'эфириум', 'eth'] },
   { name: 'Solana', ticker: 'SOL', synonyms: ['солана', 'сол', 'sol'] },
-  { name: 'Cardano', ticker: 'ADA', synonyms: ['кардано', 'ada'] },
+  { name: 'Polkadot', ticker: 'DOT', synonyms: ['полькадот', 'dot'] },
 ];
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter(); // Для перехода на страницу поиска
   
-  // Фильтрация монет по вводу
+  // Логика фильтрации для подсказок
   const filteredCoins = COINS.filter(coin => 
     coin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     coin.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
     coin.synonyms.some(s => s.includes(searchQuery.toLowerCase()))
   );
 
+  // Функция для выполнения поиска по сайту
+  const handleSearch = () => {
+    if (searchQuery.trim().length > 1) {
+      // Переходим на страницу поиска с запросом (нужно создать app/search/page.tsx)
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      // Закрываем подсказки
+      setSearchQuery('');
+    }
+  };
+
   return (
     <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-16 flex items-center justify-center">
-      <div className="w-[96%] max-w-[1440px] flex items-center justify-between px-4 gap-6">
+      <div className="w-[96%] max-w-[1440px] flex items-center justify-between px-4 gap-4">
         
-        {/* ЛОГО И ТЕКСТ (теперь зафиксированы и не исчезают) */}
-        <div className="flex items-center gap-3 shrink-0 min-w-[200px]">
+        {/* ЛОГО И ТЕКСТ (без изменений) */}
+        <div className="flex items-center gap-3 shrink-0">
           <div className="w-8 h-8 rounded-lg overflow-hidden bg-orange-600 flex items-center justify-center shrink-0">
             <img src="/favicon.ico" alt="Logo" className="w-full h-full object-cover" />
           </div>
@@ -33,49 +45,58 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* ЦЕНТРАЛЬНАЯ ЧАСТЬ: ПОИСК (с ограничением ширины) */}
-        <div className="flex-1 max-w-md relative group">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-            <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+        {/* ЦЕНТРАЛЬНАЯ ЧАСТЬ: КОМПАКТНЫЙ ПОИСК */}
+        <div className="flex-1 relative group flex items-center min-w-[180px] justify-end">
+          {/* Контейнер для поля ввода и кнопки */}
+          <div className="relative flex items-center w-full max-w-[180px]">
+            <input
+              type="text"
+              placeholder="BTC, Эфир..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              // Нажатие Enter вызывает поиск
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              // p-1.5 pr-8 делает поле компактным по высоте
+              className="w-full bg-zinc-900/50 border border-zinc-800 rounded-full p-1.5 pr-8 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-600/50 transition-all"
+            />
+            
+            {/* КНОПКА ПОИСКА (ЛУПА) В КОНЦЕ СТРОКИ */}
+            <button 
+              onClick={handleSearch}
+              className="absolute right-2 text-zinc-600 group-focus-within:text-orange-500 hover:text-orange-400 transition-colors"
+              title="Искать по сайту"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </button>
           </div>
-          <input
-            type="text"
-            placeholder="Поиск крипты..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/50 border border-zinc-800 rounded-full py-1.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-orange-600/50 transition-all"
-          />
           
-          {/* СПИСОК ПОДСКАЗОК */}
-          {searchQuery.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-[110]">
-              <div className="px-4 py-2 text-[10px] text-zinc-500 border-b border-zinc-900 uppercase tracking-widest">
-                Результаты
-              </div>
+          {/* СПИСОК ПОДСКАЗОК (выводится поверх контента) */}
+          {searchQuery.length > 1 && (
+            <div className="absolute top-full right-0 mt-2 w-full max-w-[200px] bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-[110]">
               {filteredCoins.length > 0 ? (
                 filteredCoins.map(coin => (
                   <div 
                     key={coin.ticker}
                     onClick={() => {
                       setSearchQuery(coin.name);
-                      // Тут можно добавить переход на страницу монеты
+                      // Переход на страницу конкретной монеты (нужно создать)
                     }}
-                    className="px-4 py-3 hover:bg-zinc-900 cursor-pointer flex justify-between items-center group transition-colors"
+                    className="px-4 py-3 hover:bg-zinc-900 cursor-pointer flex justify-between items-center group transition-colors border-b border-zinc-900 last:border-none"
                   >
-                    <span className="text-zinc-200 group-hover:text-white">{coin.name}</span>
+                    <span className="text-zinc-200 text-xs group-hover:text-white">{coin.name}</span>
                     <span className="text-orange-600 font-mono text-xs font-bold">{coin.ticker}</span>
                   </div>
                 ))
               ) : (
-                <div className="px-4 py-3 text-sm text-zinc-600 italic">Ничего не найдено</div>
+                <div className="px-4 py-3 text-xs text-zinc-600 italic">Монета не найдена</div>
               )}
             </div>
           )}
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ: ИКОНКИ (сюда будем добавлять новые) */}
+        {/* ПРАВАЯ ЧАСТЬ: ИКОНКА ТЕЛЕГРАМ */}
         <div className="flex items-center gap-3 shrink-0 min-w-[40px] justify-end">
           <a href="https://t.me/pulse_news_hub" target="_blank" className="p-2 rounded-full bg-zinc-900 hover:bg-zinc-800 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#24A1DE">
