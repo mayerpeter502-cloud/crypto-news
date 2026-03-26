@@ -27,39 +27,29 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* СТРОКА ПОИСКА: Положение зафиксировано на left-[40%] */}
-        <div className="absolute left-[40%] -translate-x-1/2 w-full max-w-[180px] flex items-center group">
+        {/* СТРОКА ПОИСКА: Зафиксирована на left-[40%] */}
+        {/* flex-row-reverse гарантирует, что первый элемент (button) будет КРАЙНИМ СПРАВА */}
+        <div className="absolute left-[40%] -translate-x-1/2 w-full max-w-[180px] flex flex-row-reverse items-center bg-zinc-900/40 border border-zinc-800 rounded-lg group focus-within:border-orange-600/40 transition-all">
+          
+          {/* 1. КНОПКА ПОИСКА (теперь она справа благодаря flex-row-reverse) */}
+          <button 
+            onClick={handleSearch}
+            className="p-2 flex items-center justify-center text-zinc-500 group-focus-within:text-orange-500 hover:text-orange-400 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </button>
+
+          {/* 2. ПОЛЕ ВВОДА (занимает всё свободное место слева) */}
           <input
             type="text"
             placeholder="Search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            // pr-10 обязателен, чтобы текст не заходил под лупу справа
-            className="w-full bg-zinc-900/40 border border-zinc-800 rounded-lg py-1.5 pl-3 pr-10 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-600/40 transition-all"
+            className="flex-1 bg-transparent py-1.5 pl-3 pr-1 text-sm text-white placeholder-zinc-600 focus:outline-none"
           />
-          
-          {/* НОВАЯ КНОПКА: Удалили старую и приклеили к ПРАВОМУ краю */}
-          <button 
-            onClick={handleSearch}
-            type="button"
-            className="absolute right-0 top-0 h-full px-3 flex items-center justify-center text-zinc-500 hover:text-orange-500 group-focus-within:text-orange-600 transition-colors"
-          >
-            <svg 
-              className="w-4.5 h-4.5" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2.5} 
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-              />
-            </svg>
-          </button>
         </div>
 
         {/* ТЕЛЕГРАМ */}
