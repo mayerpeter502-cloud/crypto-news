@@ -60,29 +60,38 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const { id } = await params;
   const article = await getArticle(id);
   
-  if (!article) return { title: 'Market Pulse | News' };
-
   const baseUrl = 'https://crypto-news-swart.vercel.app';
-  const pageUrl = `${baseUrl}/news/${id}`;
+  
+  if (!article) return { title: 'Market Pulse | News', metadataBase: new URL(baseUrl) };
+
   const imageUrl = article.imageurl || article.image_url;
+  const description = article.body ? article.body.substring(0, 160) : "Latest crypto news on Market Pulse";
 
   return { 
+    metadataBase: new URL(baseUrl), // КРИТИЧЕСКИ ВАЖНО для картинок
     title: article.title,
-    description: article.body?.substring(0, 160), // Добавляем описание для поиска
+    description: description,
     alternates: {
-      canonical: pageUrl, // Указываем Google на основную версию страницы
+      canonical: `/news/${id}`,
     },
     openGraph: { 
       title: article.title, 
-      description: article.body?.substring(0, 160),
-      url: pageUrl,
-      images: [{ url: imageUrl }],
+      description: description,
+      url: `/news/${id}`,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: article.title,
+        },
+      ],
       type: 'article',
     },
     twitter: {
       card: 'summary_large_image',
       title: article.title,
-      description: article.body?.substring(0, 160),
+      description: description,
       images: [imageUrl],
     }
   };
