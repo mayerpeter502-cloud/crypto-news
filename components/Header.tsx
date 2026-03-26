@@ -36,11 +36,11 @@ export default function Header() {
             </h1>
           </div>
 
-          {/* ПОИСК: ml-8 дает нужный зазор, pr-10 освобождает место под лупу справа */}
-          <div className="relative ml-8 w-full max-w-[200px] group flex items-center">
-            <input
-              type="text"
-              placeholder="Search..."
+          {/* Контейнер поиска: добавили ml-6 (margin-left) */}
+<div className="relative ml-6 w-full max-w-[160px] group flex items-center">
+  <input
+    type="text"
+    placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
