@@ -144,14 +144,12 @@ export default function NewsContent({ article, id, related = [] }: { article: an
     <div className="grid grid-cols-1 gap-3">
       {related.map((item: any) => (
         <div key={item.news_id} onClick={() => router.push(`/news/${item.news_id}`)} style={{ backgroundColor: '#050505' }} className="border border-zinc-900 rounded-xl p-3 flex items-center cursor-pointer hover:border-orange-600/50 transition-all">
-          {/* ИСПРАВЛЕННЫЙ БЛОК КАРТИНКИ С ASPECT-RATIO */}
-<div className="w-16 h-16 min-w-[64px] min-h-[64px] rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800" 
-     style={{ aspectRatio: '1 / 1' }}> 
+          {/* ИСПРАВЛЕННЫЙ БЛОК КАРТИНКИ */}
+<div className="w-16 h-16 min-w-[64px] rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800 relative">
   <img 
     src={item.image_url} 
     alt="" 
-    className="w-full h-full object-cover block" 
-    style={{ minWidth: '100%', minHeight: '100%' }}
+    className="absolute inset-0 w-full h-full object-cover" 
   />
 </div>
           <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', margin: 0 }} className="line-clamp-2 leading-snug">
