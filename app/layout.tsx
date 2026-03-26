@@ -9,16 +9,33 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
-export const metadata = {
-  // Это будет единственная надпись в карточке (вместо домена)
-  title: 'CRYPTOFLOW', 
-  description: ' ', // Ставим пробел, чтобы убрать "Market Intelligence" или "Aggregator"
+export const metadata: Metadata = {
+  metadataBase: new URL('https://crypto-news-swart.vercel.app'),
+  title: 'Market Pulse | Crypto News Terminal',
+  description: 'Real-time cryptocurrency news aggregation and market analysis.',
   openGraph: {
-    title: 'CRYPTOFLOW',
-    description: ' ',
-    siteName: 'CRYPTOFLOW',
+    title: 'Market Pulse | Crypto News Terminal',
+    description: 'Real-time cryptocurrency news aggregation and market analysis.',
+    url: '/',
+    siteName: 'Market Pulse',
+    images: [{ url: '/og-main.png', width: 1200, height: 630 }],
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Market Pulse | Crypto News Terminal',
+    description: 'Real-time cryptocurrency news aggregation and market analysis.',
+    images: ['/og-main.png'],
   },
 };
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
 
 export default function RootLayout({
   children,
