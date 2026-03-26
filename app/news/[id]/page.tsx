@@ -59,10 +59,32 @@ async function getRelatedNews(article: any) {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const article = await getArticle(id);
-  if (!article) return { title: 'CryptoFlow | News' };
+  
+  if (!article) return { title: 'Market Pulse | News' };
+
+  const baseUrl = 'https://crypto-news-swart.vercel.app';
+  const pageUrl = `${baseUrl}/news/${id}`;
+  const imageUrl = article.imageurl || article.image_url;
+
   return { 
-    title: article.title, 
-    openGraph: { title: article.title, images: [article.imageurl || article.image_url] } 
+    title: article.title,
+    description: article.body?.substring(0, 160), // Добавляем описание для поиска
+    alternates: {
+      canonical: pageUrl, // Указываем Google на основную версию страницы
+    },
+    openGraph: { 
+      title: article.title, 
+      description: article.body?.substring(0, 160),
+      url: pageUrl,
+      images: [{ url: imageUrl }],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: article.title,
+      description: article.body?.substring(0, 160),
+      images: [imageUrl],
+    }
   };
 }
 
