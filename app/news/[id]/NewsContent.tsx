@@ -147,18 +147,19 @@ export default function NewsContent({ article, id, related = [] }: { article: an
           key={item.news_id} 
           onClick={() => router.push(`/news/${item.news_id}`)} 
           style={{ backgroundColor: '#050505' }} 
-          className="border border-zinc-900 rounded-xl p-3 flex items-center cursor-pointer hover:border-orange-600/50 transition-all"
+          className="border border-zinc-900 rounded-xl p-3 flex items-center cursor-pointer hover:border-orange-600/50 transition-all w-full"
         >
-          {/* Контейнер картинки: теперь жестко фиксирован */}
-          <div className="relative w-16 h-16 min-w-[64px] rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800">
+          {/* ФИКСИРОВАННЫЙ КОНТЕЙНЕР ДЛЯ КАРТИНКИ */}
+          <div className="w-16 h-16 min-w-[64px] rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800 relative">
             <img 
               src={item.image_url} 
               alt="" 
               className="absolute inset-0 w-full h-full object-cover" 
             />
           </div>
-          {/* Заголовок: возвращаем его на место */}
-          <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', margin: 0 }} className="line-clamp-2 leading-snug">
+          
+          {/* ТЕКСТ ЗАГОЛОВКА */}
+          <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', margin: 0 }} className="line-clamp-2 leading-snug flex-1">
             {item.title}
           </p>
         </div>
