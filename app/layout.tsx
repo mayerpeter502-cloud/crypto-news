@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-// 1. Меняем импорт Geist на Inter
 import { Inter } from "next/font/google"; 
 import "./globals.css";
 
-// 2. Настраиваем шрифт Inter
+// 1. Настраиваем шрифт Inter
 const inter = Inter({
-  subsets: ["latin", "cyrillic"], // Добавляем поддержку кириллицы
+  subsets: ["latin", "cyrillic"],
   variable: "--font-inter",
 });
 
+// 2. Глобальные метаданные (теперь они здесь одни)
 export const metadata: Metadata = {
   metadataBase: new URL('https://crypto-news-swart.vercel.app'),
   title: 'Market Pulse | Crypto News Terminal',
@@ -29,25 +29,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}
-
+// 3. Единственная функция RootLayout
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/* 3. Применяем шрифт Inter ко всему сайту через className */}
-      <body className={inter.className}>
-  {children} {/* Шапка должна быть внутри children или прямо здесь, но БЕЗ оберток с max-w */}
-</body>
+    <html lang="en" className={inter.variable}>
+      <body className="antialiased font-sans">
+        {children}
+      </body>
     </html>
   );
 }
