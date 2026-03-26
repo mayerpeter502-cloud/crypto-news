@@ -4,6 +4,34 @@ import NewsCard from '@/components/NewsCard';
 import PriceTicker from '@/components/PriceTicker';
 import Header from '@/components/Header';
 import { getCryptoNews } from '@/lib/getNews';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  metadataBase: new URL('https://crypto-news-swart.vercel.app'),
+  title: 'Market Pulse | Crypto News Terminal',
+  description: 'Real-time cryptocurrency news aggregation and market analysis.',
+  openGraph: {
+    title: 'Market Pulse | Crypto News Terminal',
+    description: 'Real-time cryptocurrency news aggregation and market analysis.',
+    url: '/',
+    siteName: 'Market Pulse',
+    images: [
+      {
+        url: '/og-main.png', // Положите любую картинку в папку public с таким названием
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Market Pulse | Crypto News Terminal',
+    description: 'Real-time cryptocurrency news aggregation and market analysis.',
+    images: ['/og-main.png'],
+  },
+};
 
 export default function Home() {
   const [news, setNews] = useState<any[]>([]);
