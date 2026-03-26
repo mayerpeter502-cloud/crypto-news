@@ -14,12 +14,6 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   
-  const filteredCoins = COINS.filter(coin => 
-    coin.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    coin.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    coin.synonyms.some(s => s.includes(searchQuery.toLowerCase()))
-  );
-
   const handleSearch = () => {
     if (searchQuery.trim().length > 1) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
@@ -31,62 +25,40 @@ export default function Header() {
     <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-14 flex items-center justify-center">
       <div className="w-[98%] max-w-[1440px] flex items-center justify-between px-2 gap-4">
         
-        {/* ЛЕВАЯ ЧАСТЬ: ЛОГО + ПОИСК */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center">
+          {/* ЛОГОТИП */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="w-7 h-7 rounded bg-orange-600 flex items-center justify-center overflow-hidden">
               <img src="/favicon.ico" alt="L" className="w-full h-full object-cover" />
             </div>
-            {/* Текст логотипа, на высоту которого мы ориентируемся */}
-            <h1 className="text-white font-black text-lg tracking-tighter uppercase leading-none py-1">
+            <h1 className="text-white font-black text-lg tracking-tighter uppercase leading-none">
               CRYPTO<span className="text-orange-600">FLOW</span>
             </h1>
           </div>
 
-          {/* СТРОКА ПОИСКА: Высота как у текста, ширина под название монеты */}
-          <div className="relative w-full max-w-[160px] group flex items-center">
+          {/* ПОИСК: ml-8 дает нужный зазор, pr-10 освобождает место под лупу справа */}
+          <div className="relative ml-8 w-full max-w-[200px] group flex items-center">
             <input
               type="text"
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              // py-[3px] подгоняет высоту под текст логотипа
-              className="w-full bg-zinc-900/40 border border-zinc-800 rounded-lg py-[3px] pl-2.5 pr-8 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-600/40 transition-all"
+              className="w-full bg-zinc-900/40 border border-zinc-800 rounded-lg py-[4px] pl-3 pr-9 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-orange-600/40 transition-all"
             />
-            {/* ИКОНКА ЛУПЫ СПРАВА */}
+            {/* КНОПКА ЛУПЫ: теперь строго СПРАВА */}
             <button 
               onClick={handleSearch}
-              className="absolute right-2.5 flex items-center justify-center text-zinc-500 group-focus-within:text-orange-500 hover:text-orange-400 transition-colors"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-orange-500 transition-colors"
             >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
-
-            {/* ПОДСКАЗКИ */}
-            {searchQuery.length > 1 && (
-              <div className="absolute top-full left-0 mt-1 w-[200px] bg-zinc-950 border border-zinc-800 rounded-lg shadow-2xl z-[110] overflow-hidden">
-                {filteredCoins.length > 0 ? (
-                  filteredCoins.map(coin => (
-                    <div 
-                      key={coin.ticker}
-                      onClick={() => { setSearchQuery(coin.name); handleSearch(); }}
-                      className="px-3 py-2 hover:bg-zinc-900 cursor-pointer flex justify-between items-center border-b border-zinc-900 last:border-none transition-colors"
-                    >
-                      <span className="text-zinc-300 text-[11px]">{coin.name}</span>
-                      <span className="text-orange-600 font-mono text-[10px] font-bold">{coin.ticker}</span>
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-3 py-2 text-[11px] text-zinc-600 italic uppercase tracking-tighter">No assets found</div>
-                )}
-              </div>
-            )}
           </div>
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ: ТЕЛЕГРАМ */}
+        {/* ТЕЛЕГРАМ */}
         <div className="flex items-center">
           <a href="https://t.me/pulse_news_hub" target="_blank" className="p-1.5 rounded-full hover:bg-zinc-900 transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="#24A1DE">
@@ -94,7 +66,6 @@ export default function Header() {
             </svg>
           </a>
         </div>
-        
       </div>
     </header>
   );
