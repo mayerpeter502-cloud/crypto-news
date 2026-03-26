@@ -136,22 +136,28 @@ export default function NewsContent({ article, id, related = [] }: { article: an
           </div>
 
           {/* ПОХОЖИЕ НОВОСТИ */}
-{related && related.length > 0 && (
+{mounted && related && related.length > 0 && (
   <div className="mt-12">
     <h3 style={{ color: '#ea580c', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.3em', marginBottom: '24px' }}>
       Similar news
     </h3>
     <div className="grid grid-cols-1 gap-3">
       {related.map((item: any) => (
-        <div key={item.news_id} onClick={() => router.push(`/news/${item.news_id}`)} style={{ backgroundColor: '#050505' }} className="border border-zinc-900 rounded-xl p-3 flex items-center cursor-pointer hover:border-orange-600/50 transition-all">
-          {/* ИСПРАВЛЕННЫЙ БЛОК КАРТИНКИ */}
-<div className="w-16 h-16 min-w-[64px] rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800 relative">
-  <img 
-    src={item.image_url} 
-    alt="" 
-    className="absolute inset-0 w-full h-full object-cover" 
-  />
-</div>
+        <div 
+          key={item.news_id} 
+          onClick={() => router.push(`/news/${item.news_id}`)} 
+          style={{ backgroundColor: '#050505' }} 
+          className="border border-zinc-900 rounded-xl p-3 flex items-center cursor-pointer hover:border-orange-600/50 transition-all"
+        >
+          {/* Контейнер картинки: теперь жестко фиксирован */}
+          <div className="relative w-16 h-16 min-w-[64px] rounded-lg overflow-hidden mr-4 shrink-0 bg-zinc-800">
+            <img 
+              src={item.image_url} 
+              alt="" 
+              className="absolute inset-0 w-full h-full object-cover" 
+            />
+          </div>
+          {/* Заголовок: возвращаем его на место */}
           <p style={{ color: '#ffffff', fontSize: '14px', fontWeight: '700', margin: 0 }} className="line-clamp-2 leading-snug">
             {item.title}
           </p>
