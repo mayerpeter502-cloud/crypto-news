@@ -5,10 +5,6 @@ import { useRouter } from 'next/navigation';
 export default function Header() {
   const router = useRouter();
 
-  const goToSearch = () => {
-    router.push('/search');
-  };
-
   return (
     <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-16 flex items-center justify-center">
       <div className="w-[96%] max-w-[1440px] h-full flex items-center justify-between px-4">
@@ -23,8 +19,9 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ: ТЕЛЕГРАМ + ПОИСК */}
-        <div className="flex items-center gap-4 shrink-0">
+        {/* ПРАВАЯ ЧАСТЬ: gap-6 отодвигает поиск от Telegram */}
+        <div className="flex items-center gap-6 shrink-0">
+          
           {/* ТЕЛЕГРАМ */}
           <a 
             href="https://t.me/pulse_news_hub" 
@@ -37,10 +34,10 @@ export default function Header() {
             </svg>
           </a>
 
-          {/* НОВАЯ КНОПКА ПОИСКА (КРАЙНЯЯ СПРАВА) */}
+          {/* КНОПКА ПОИСКА */}
           <button 
-            onClick={goToSearch}
-            className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 transition-all group"
+            onClick={() => router.push('/search')}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 transition-all group"
           >
             <svg 
               className="w-5 h-5 text-zinc-400 group-hover:text-orange-500 transition-colors" 
@@ -48,12 +45,7 @@ export default function Header() {
               stroke="currentColor" 
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <span className="text-sm font-medium text-zinc-400 group-hover:text-white transition-colors">
               Поиск
