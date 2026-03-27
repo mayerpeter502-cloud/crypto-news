@@ -23,7 +23,7 @@ export default function Header() {
         <div className="flex items-center shrink-0">
           
           {/* TELEGRAM */}
-          <div style={{ marginRight: '16px !important', display: 'flex' }}> 
+          <div style={{ marginRight: '12px !important', display: 'flex' }}> 
             <a 
               href="https://t.me/pulse_news_hub" 
               target="_blank" 
