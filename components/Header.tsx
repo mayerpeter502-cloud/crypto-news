@@ -9,22 +9,21 @@ export default function Header() {
     <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-16 flex items-center justify-center">
       <div className="w-[96%] max-w-[1440px] h-full flex items-center justify-between px-4">
         
-        {/* 1. БЛОК ЛОГОТИПА (СЛЕВА) */}
-        <div className="flex items-center">
-          <div className="flex items-center gap-4 shrink-0">
-            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-orange-600 shadow-[0_0_15px_rgba(234,88,12,0.3)]">
-              <img src="/favicon.ico" alt="Logo" className="w-full h-full object-cover" />
-            </div>
-            <h1 className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap">
-              CRYPTO<span className="text-orange-600">FLOW</span>
-            </h1>
+        {/* ЛОГОТИП */}
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-orange-600 shadow-[0_0_15px_rgba(234,88,12,0.3)]">
+            <img src="/favicon.ico" alt="Logo" className="w-full h-full object-cover" />
           </div>
+          <h1 className="text-white font-black text-2xl tracking-tighter uppercase whitespace-nowrap">
+            CRYPTO<span className="text-orange-600">FLOW</span>
+          </h1>
         </div>
 
-        {/* 2. ПРАВАЯ ЧАСТЬ: РАЗДЕЛЬНЫЕ КОНТЕЙНЕРЫ */}
+        {/* ПРАВАЯ ЧАСТЬ: РАЗДЕЛЬНЫЕ КРУГЛЫЕ КНОПКИ */}
         <div className="flex items-center shrink-0">
           
           {/* КОНТЕЙНЕР ТЕЛЕГРАМ */}
+          {/* mr-6 гарантирует, что кнопки не слипнутся */}
           <div className="mr-6"> 
             <a 
               href="https://t.me/pulse_news_hub" 
@@ -38,20 +37,22 @@ export default function Header() {
             </a>
           </div>
 
-          {/* КОНТЕЙНЕР ПОИСКА (ТОЛЬКО ИКОНКА) */}
+          {/* КОНТЕЙНЕР ПОИСКА (ТОЧНО КАК ТЕЛЕГРАМ) */}
           <div className="flex items-center">
+            {/* button вместо a, но стили (h-10 w-10 rounded-full) те же */}
             <button 
               onClick={() => router.push('/search')}
-              className="flex items-center justify-center w-10 h-10 rounded-lg bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 transition-all group"
               title="Search"
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 group"
             >
+              {/* КРУПНАЯ ЧЕТКАЯ ЛУПА */}
               <svg 
-                className="w-5 h-5 text-zinc-400 group-hover:text-orange-500 transition-colors" 
+                className="w-5 h-5 text-white/70 group-hover:text-orange-500 transition-colors group-hover:scale-110 transition-transform" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
           </div>
