@@ -19,21 +19,21 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* ПРАВАЯ ЧАСТЬ: РАЗДЕЛЬНЫЕ КРУГЛЫЕ КНОПКИ */}
+        {/* ПРАВАЯ ЧАСТЬ: РАЗДЕЛЬНЫЕ КРУГЛЫЕ КНОПКИ УНИФИЦИРОВАННОГО РАЗМЕРА */}
         <div className="flex items-center shrink-0">
           
           {/* КОНТЕЙНЕР ТЕЛЕГРАМ */}
-          {/* !IMPORTANT ИНЛАЙН СТИЛЬ: Гарантированный зазор */}
-          <div style={{ marginRight: '24px !important', display: 'block !important' }}> 
+          {/* !IMPORTANT ИНЛАЙН СТИЛЬ: Уменьшили отступ до 16px */}
+          <div style={{ marginRight: '16px !important', display: 'block !important' }}> 
             <a 
               href="https://t.me/pulse_news_hub" 
               target="_blank" 
               rel="noopener noreferrer"
               className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 group"
-              // !IMPORTANT ИНЛАЙН СТИЛЬ: Жесткие размеры
-              style={{ width: '40px !important', height: '40px !important' }}
+              // !IMPORTANT ИНЛАЙН СТИЛЬ: Унифицированный "средний" размер 36px
+              style={{ width: '36px !important', height: '36px !important' }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="#24A1DE" className="group-hover:scale-110 transition-transform">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="#24A1DE" className="group-hover:scale-110 transition-transform">
                 <path d="M11.944 0C5.356 0 0 5.356 0 11.944c0 6.589 5.356 11.944 11.944 11.944 6.589 0 11.944-5.356 11.944-11.944C23.888 5.356 18.533 0 11.944 0zm5.54 8.243l-1.897 8.941c-.143.644-.523.804-1.063.501l-2.892-2.132-1.396 1.343c-.154.154-.284.284-.582.284l.207-2.943 5.357-4.841c.233-.207-.051-.322-.361-.116L8.214 12.247l-2.854-.892c-.62-.194-.632-.62.129-.917l11.161-4.301c.517-.188.969.123.834.106z"/>
               </svg>
             </a>
@@ -41,22 +41,22 @@ export default function Header() {
 
           {/* КОНТЕЙНЕР ПОИСКА (ТОЧНО КАК ТЕЛЕГРАМ) */}
           <div className="flex items-center">
-            {/* button вместо a */}
+            {/* button вместо a, но стили те же */}
             <button 
               onClick={() => router.push('/search')}
               title="Search"
               className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 group"
-              // !IMPORTANT ИНЛАЙН СТИЛЬ: Жесткие размеры
-              style={{ width: '40px !important', height: '40px !important' }}
+              // !IMPORTANT ИНЛАЙН СТИЛЬ: Унифицированный "средний" размер 36px
+              style={{ width: '36px !important', height: '36px !important' }}
             >
-              {/* КРУПНАЯ ЧЕТКАЯ ЛУПА */}
+              {/* КРУПНАЯ ЧЕТКАЯ ЛУПА (w-4.5) */}
               <svg 
-                className="w-5 h-5 text-white/70 group-hover:text-orange-500 transition-colors group-hover:scale-110 transition-transform" 
+                className="w-4.5 h-4.5 text-white/70 group-hover:text-orange-500 transition-colors group-hover:scale-110 transition-transform" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </button>
           </div>
