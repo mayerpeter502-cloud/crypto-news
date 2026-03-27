@@ -37,15 +37,18 @@ export default function Header() {
             </a>
           </div>
 
-          {/* SEARCH */}
+          {/* SEARCH (БЛОК С КРУГЛЫМ ФОНОМ И ЛУПОЙ) */}
           <div className="flex items-center">
+            {/* ВЕРНУЛИ КРУГЛЫЙ ФОН: rounded-full и bg-white/10 */}
             <button 
               onClick={() => router.push('/search')}
-              className="flex items-center justify-center transition-all duration-300 group"
+              title="Search"
+              className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all duration-300 group"
               style={{ width: '24px !important', height: '24px !important' }}
             >
+              {/* КРУПНАЯ ЧЕТКАЯ ЛУПА */}
               <svg 
-                className="w-6 h-6 text-zinc-400 group-hover:text-orange-500 transition-colors group-hover:scale-110 transition-transform" 
+                className="w-4 h-4 text-white/70 group-hover:text-orange-500 transition-colors group-hover:scale-110 transition-transform" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
