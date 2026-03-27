@@ -21,11 +21,11 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-16 flex items-center justify-center">
+    <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-16 flex items-center justify-center overflow-hidden">
       <div className="w-[96%] max-w-[1440px] h-full flex items-center justify-between px-4 relative">
         
-        {/* LOGO */}
-        <div className="flex items-center gap-4 shrink-0">
+        {/* LOGO - Всегда на месте */}
+        <div className="flex items-center gap-4 shrink-0 z-10">
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-orange-600 shadow-[0_0_15px_rgba(234,88,12,0.3)]">
             <img src="/favicon.ico" alt="Logo" className="w-full h-full object-cover" />
           </div>
@@ -34,16 +34,17 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* ПРАВЫЙ БЛОК: ТГ + ПОИСК */}
+        {/* ПРАВАЯ ЧАСТЬ */}
         <div className="flex items-center relative h-full shrink-0">
           
-          {/* ТЕЛЕГРАМ: Скрывается через opacity, остается на месте */}
+          {/* ТЕЛЕГРАМ - Просто исчезает на месте */}
           <div 
             style={{ 
               marginRight: '12px !important', 
               opacity: isSearchOpen ? 0 : 1,
               transition: 'opacity 0.2s ease',
-              pointerEvents: isSearchOpen ? 'none' : 'auto'
+              pointerEvents: isSearchOpen ? 'none' : 'auto',
+              display: 'flex'
             }}
           > 
             <a href="https://t.me/pulse_news_hub" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center transition-all group" style={{ width: '24px !important', height: '24px !important' }}>
@@ -51,23 +52,25 @@ export default function Header() {
             </a>
           </div>
 
-          {/* ИНПУТ: Выезжает ВЛЕВО от кнопки лупы */}
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder="What are you searching for?"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className={`absolute right-8 top-1/2 -translate-y-1/2 bg-transparent border-b border-orange-600/50 text-sm text-white placeholder-zinc-600 transition-all duration-300 ease-in-out outline-none ${
-              isSearchOpen 
-                ? 'opacity-100 w-[250px] sm:w-[350px]' 
-                : 'opacity-0 w-0 pointer-events-none'
-            }`}
-            style={{ height: '24px' }}
-          />
+          {/* ИНПУТ - Теперь он ABSOLUTE и не раздувает хедер */}
+          <div className="absolute right-8 flex items-center pointer-events-none">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="What are you searching for?"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className={`bg-black border-b border-orange-600/50 text-sm text-white placeholder-zinc-600 transition-all duration-300 ease-in-out outline-none pointer-events-auto ${
+                isSearchOpen 
+                  ? 'opacity-100 w-[200px] sm:w-[300px] pr-2' 
+                  : 'opacity-0 w-0 overflow-hidden'
+              }`}
+              style={{ height: '24px' }}
+            />
+          </div>
 
-          {/* КНОПКА ЛУПА / КРЕСТИК */}
+          {/* КНОПКА ПОИСКА / ЗАКРЫТИЯ */}
           <button 
             onClick={() => isSearchOpen ? (searchQuery ? handleSearch() : setIsSearchOpen(false)) : setIsSearchOpen(true)}
             className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all z-20"
