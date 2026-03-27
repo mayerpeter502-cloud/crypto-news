@@ -21,11 +21,10 @@ export default function Header() {
   };
 
   return (
-    // Добавили overflow-hidden, чтобы ничего не могло "вылезти" за границы хедера
-    <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-16 flex items-center justify-center overflow-hidden">
+    <header className="w-full bg-black border-b border-zinc-900 sticky top-0 z-[100] h-16 flex items-center justify-center">
       <div className="w-[96%] max-w-[1440px] h-full flex items-center justify-between px-4 relative">
         
-        {/* LOGO AREA - Всегда на месте */}
+        {/* LOGO */}
         <div className="flex items-center gap-4 shrink-0 z-10">
           <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center bg-orange-600 shadow-[0_0_15px_rgba(234,88,12,0.3)]">
             <img src="/favicon.ico" alt="Logo" className="w-full h-full object-cover" />
@@ -35,17 +34,17 @@ export default function Header() {
           </h1>
         </div>
 
-        {/* RIGHT AREA - Группа элементов справа */}
+        {/* RIGHT GROUP - Ключевое место */}
         <div className="flex items-center relative h-full shrink-0">
           
-          {/* СЛОЙ 1: ЗНАЧКИ (Telegram и др.) */}
-          {/* Они просто стоят на месте, инпут проедет НАД ними */}
+          {/* ТЕЛЕГРАМ - Просто исчезает, стоит на месте */}
           <div 
-            className="flex items-center transition-opacity duration-300"
+            className="transition-opacity duration-300"
             style={{ 
               marginRight: '12px !important', 
               opacity: isSearchOpen ? 0 : 1,
-              pointerEvents: isSearchOpen ? 'none' : 'auto'
+              pointerEvents: isSearchOpen ? 'none' : 'auto',
+              display: 'flex'
             }}
           > 
             <a href="https://t.me/pulse_news_hub" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center transition-all group" style={{ width: '24px !important', height: '24px !important' }}>
@@ -53,9 +52,8 @@ export default function Header() {
             </a>
           </div>
 
-          {/* СЛОЙ 2: ИНПУТ (ABSOLUTE) */}
-          {/* Он привязан к ПРАВОМУ краю и расширяется ВЛЕВО, не толкая контейнер */}
-          <div className="absolute right-8 flex items-center pointer-events-none">
+          {/* ИНПУТ - Теперь привязан к ПРАВОМУ КРАЮ кнопки через right-0 */}
+          <div className="absolute right-0 flex items-center pointer-events-none">
             <input
               ref={inputRef}
               type="text"
@@ -65,17 +63,17 @@ export default function Header() {
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className={`bg-black border-b border-orange-600 text-sm text-white placeholder-zinc-600 transition-all duration-300 ease-out outline-none pointer-events-auto ${
                 isSearchOpen 
-                  ? 'opacity-100 w-[200px] sm:w-[300px] md:w-[400px] pr-2' 
+                  ? 'opacity-100 w-[240px] sm:w-[320px] pr-10 pl-2' // pr-10 оставляет место под кнопкой
                   : 'opacity-0 w-0'
               }`}
               style={{ height: '24px' }}
             />
           </div>
 
-          {/* СЛОЙ 3: КНОПКА (Z-INDEX ВЫШЕ ВСЕХ) */}
+          {/* КНОПКА - Поверх всего */}
           <button 
             onClick={() => isSearchOpen ? (searchQuery ? handleSearch() : setIsSearchOpen(false)) : setIsSearchOpen(true)}
-            className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all z-20"
+            className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all z-20 shrink-0"
             style={{ width: '24px !important', height: '24px !important' }}
           >
             {isSearchOpen ? (
