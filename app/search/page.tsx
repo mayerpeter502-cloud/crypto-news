@@ -55,13 +55,35 @@ function SearchResults() {
                 <div className="w-32 md:w-56 h-full shrink-0 overflow-hidden border-r border-zinc-900 bg-[#111]">
                   <img src={item.image_url || `https://loremflickr.com/400/300/crypto?lock=${idx}`} alt="" className="w-full h-full object-cover opacity-70 group-hover:opacity-100" />
                 </div>
-                <div className="flex flex-col justify-center flex-grow min-w-0 px-8">
-                  <div className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: '#a1a1aa' }}>
-                    {item.created_at ? new Date(item.created_at).toLocaleDateString('en-US') : 'RECENT'} • MARKET PULSE
-                  </div>
-                  <h3 className="text-lg md:text-xl font-bold uppercase truncate transition-colors group-hover:text-blue-500" style={{ color: '#ffffff' }}>{item.title}</h3>
-                  <p className="text-xs md:text-sm line-clamp-2" style={{ color: '#d4d4d8', margin: 0 }}>{item.body}</p>
-                </div>
+                {/* ТЕКСТОВЫЙ КОНТЕНТ С ВОЗВРАЩЕННЫМИ ОТСТУПАМИ (32px) */}
+<div 
+  className="flex flex-col justify-center flex-grow min-w-0" 
+  style={{ paddingLeft: '32px', paddingRight: '32px' }} 
+>
+  {/* ДАТА */}
+  <div 
+    className="text-[10px] font-bold uppercase tracking-widest mb-1.5" 
+    style={{ color: '#a1a1aa' }}
+  >
+    {item.created_at ? new Date(item.created_at).toLocaleDateString('en-US') : 'RECENT'} • MARKET PULSE
+  </div>
+  
+  {/* ЗАГОЛОВОК — БЕЛЫЙ (#ffffff) */}
+  <h3 
+    className="text-lg md:text-xl font-bold uppercase truncate transition-colors group-hover:text-blue-500" 
+    style={{ color: '#ffffff' }}
+  >
+    {item.title}
+  </h3>
+  
+  {/* ОПИСАНИЕ — СЕРЫЙ (#d4d4d8) */}
+  <p 
+    className="text-xs md:text-sm line-clamp-2" 
+    style={{ color: '#d4d4d8', margin: 0 }}
+  >
+    {item.body}
+  </p>
+</div>
               </a>
             ))}
 
