@@ -87,21 +87,21 @@ export default function Header() {
 
           {/* КНОПКА ЛУПА / КРЕСТИК (Якорь) - Вернул КРУГЛУЮ форму */}
          <button  
-           onClick={() => isSearchOpen ? (searchQuery ? handleSearch() : setIsSearchOpen(false)) : setIsSearchOpen(true)}
-           // rounded-full: КРУГЛАЯ, h-8 (32px) - Маленькая и аккуратная
-           className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all z-[60] shrink-0 h-8"
-           style={{ width: '32px', height: '32px' }}
-         >
-           {isSearchOpen ? (
-             <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-             </svg>
-           ) : (
-             <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-             </svg>
-           )}
-         </button>
+  onClick={() => isSearchOpen ? (searchQuery ? handleSearch() : setIsSearchOpen(false)) : setIsSearchOpen(true)}
+  // Добавлен класс cursor-pointer для появления "руки" при наведении
+  className="flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all z-[60] shrink-0 h-8 cursor-pointer"
+  style={{ width: '32px', height: '32px' }}
+>
+  {isSearchOpen ? (
+    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  ) : (
+    <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  )}
+</button>
         </div>
         
       </div>
