@@ -6,6 +6,7 @@ import Link from 'next/link';
 export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isContactsOpen, setIsContactsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -91,69 +92,71 @@ export default function Header() {
             {isSearchOpen ? (<svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>) : (<svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>)}
           </button>
 
-          {/* ——— МОДАЛЬНОЕ ОКНО — КОМПАКТНОЕ ПО ТЗ ——— */}
+          {/* ——— МОДАЛЬНОЕ ОКНО ——— */}
 {isContactsOpen && (
   <div 
-    className="absolute z-[110] top-[64px] right-0 w-[90vw] max-w-[500px] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-4 duration-300 rounded-2xl overflow-hidden"
-    style={{ 
-      height: '50vh', 
-      backgroundColor: '#7f1d1d', // Светлый бордовый
-      border: '4px solid #991b1b' 
-    }}
+    className="absolute z-[110] top-[64px] right-0 w-[90vw] max-w-[340px] shadow-2xl flex flex-col animate-in fade-in slide-in-from-top-4 duration-300 rounded-2xl overflow-hidden"
+    style={{ backgroundColor: '#a84a4a', border: '4px solid #c46666', height: 'auto', maxHeight: '80vh' }}
     onClick={(e) => e.stopPropagation()}
   >
-    {/* ШАПКА ОКНА */}
-    <div className="px-6 py-4 flex justify-between items-center bg-[#7f1d1d]">
-      <span className="text-[12px] font-black uppercase tracking-[0.3em]" style={{ color: '#ffffff' }}>Direct Line Secure Node</span>
-      <button onClick={() => setIsContactsOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 text-white hover:bg-black/40 transition-all">
+    {/* ШАПКА ОКНА — КРЕСТИК СПРАВА, ТЕКСТ ПО ЦЕНТРУ */}
+    <div className="px-4 py-4 flex justify-between items-center" style={{ backgroundColor: '#a84a4a' }}>
+      <span className="text-[12px] font-black uppercase tracking-[0.3em] text-white flex-1 text-center" style={{ color: '#ffffff' }}>
+        Direct Line Secure Node
+      </span>
+      <button onClick={() => setIsContactsOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-full bg-black/20 text-white hover:bg-black/40 transition-all shrink-0">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
       </button>
     </div>
 
-    {/* КОНТЕНТ (Уменьшенные отступы, чтобы убрать скролл) */}
-    <div className="flex-grow px-10 py-6 overflow-hidden"> {/* overflow-hidden убирает полосу прокрутки */}
+    {/* КОНТЕНТ — ВЕСЬ ТЕКСТ БЕЛЫЙ, ОТСТУП 8px */}
+    <div className="flex-grow px-3 py-4 overflow-hidden">
       
       {/* EMAIL */}
-      <div style={{ paddingBottom: '24px' }}> 
-        <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: '#ffffff', opacity: 0.7 }}>Primary Email Secure Node</div>
-        <a 
-          href={`mailto:${contacts.email}`} 
-          className="text-xl md:text-2xl font-black transition-colors font-mono tracking-tighter hover:opacity-70 inline-block"
-          style={{ color: '#ffffff' }}
+      <div style={{ paddingBottom: '16px' }}> 
+        <div className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: '#ffffff', paddingLeft: '8px' }}>Primary Email Secure Node</div>
+        <div 
+          onClick={async () => {
+            await navigator.clipboard.writeText(contacts.email);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+          className="block text-xl md:text-2xl font-black font-mono tracking-tighter hover:opacity-70 cursor-pointer"
+          style={{ color: '#ffffff', paddingLeft: '8px' }}
         >
-          {contacts.email}
-        </a>
+          {copied ? "Copied" : contacts.email}
+        </div>
       </div>
 
       {/* TELEGRAM */}
-      <div style={{ paddingBottom: '24px' }}>
-        <div className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: '#ffffff', opacity: 0.7 }}>Encrypted Telegram Signal</div>
+      <div style={{ paddingBottom: '16px' }}>
+        <div className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{ color: '#ffffff', paddingLeft: '8px' }}>Encrypted Telegram Signal</div>
         <a 
           href={contacts.telegram} 
           target="_blank" 
           rel="noopener noreferrer" 
-          className="text-xl md:text-2xl font-black transition-colors font-mono tracking-tighter hover:opacity-70 inline-block"
-          style={{ color: '#ffffff' }}
+          className="block text-xl md:text-2xl font-black font-mono tracking-tighter hover:opacity-70"
+          style={{ color: '#ffffff', paddingLeft: '8px' }}
         >
           @alnik465
         </a>
       </div>
 
-      {/* О САЙТЕ (Белый текст, компактно) */}
-      <div className="bg-black/10 p-6 rounded-xl space-y-2">
-        <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#ffffff' }}>Network Layer / Developer Access</div>
-        <div className="text-[13px] leading-snug font-semibold font-sans space-y-1" style={{ color: '#ffffff' }}>
-          <p>• Market Pulse Platform v3.15 PRO</p>
-          <p>• AI Hybrid Intelligence Analyzer</p>
-          <p>• RSS Real-time Monitoring</p>
-          <p>• Supabase DB Synced</p>
+      {/* О САЙТЕ */}
+      <div className="bg-black/10 p-4 rounded-xl space-y-1.5">
+        <div className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#ffffff', paddingLeft: '8px' }}>Network Layer / Developer Access</div>
+        <div className="text-[13px] leading-snug font-semibold font-sans space-y-0.5" style={{ color: '#ffffff' }}>
+          <p style={{ paddingLeft: '8px' }}>• Market Pulse Platform v3.15 PRO</p>
+          <p style={{ paddingLeft: '8px' }}>• AI Hybrid Intelligence Analyzer</p>
+          <p style={{ paddingLeft: '8px' }}>• RSS Real-time Monitoring</p>
+          <p style={{ paddingLeft: '8px' }}>• Supabase DB Synced</p>
         </div>
       </div>
     </div>
 
-    {/* ФУТЕР */}
-    <div className="px-6 py-4 text-center bg-black/10">
-      <span className="text-[9px] font-black uppercase tracking-[0.5em]" style={{ color: '#ffffff', opacity: 0.4 }}>Auth: Secure Connection</span>
+    {/* ФУТЕР — БЕЛЫЙ ТЕКСТ */}
+    <div className="px-4 py-3 text-center" style={{ backgroundColor: 'rgba(0,0,0,0.1)' }}>
+      <span className="text-[9px] font-black uppercase tracking-[0.5em]" style={{ color: '#ffffff' }}>Auth: Secure Connection</span>
     </div>
   </div>
 )}
