@@ -7,7 +7,7 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 2. Укажите ваш реальный домен
-const BASE_URL = 'https://cryptoflow.com'; 
+const BASE_URL = 'https://crypto-news-swart.vercel.app'; 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
