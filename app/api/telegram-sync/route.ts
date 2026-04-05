@@ -29,8 +29,6 @@ export async function GET(request: Request) {
 
     // 1. УМНОЕ УДАЛЕНИЕ СТАРЫХ ЗАПИСЕЙ ИЗ ТГ И БД
     const expirationDate = new Date(Date.now() - DELETE_AFTER_MS).toISOString();
-    
-    // Сначала получаем список сообщений, которые пора удалить
     const { data: toDelete } = await supabase
       .from('telegram_posts')
       .select('id, message_id')
@@ -39,54 +37,23 @@ export async function GET(request: Request) {
     if (toDelete && toDelete.length > 0) {
       for (const item of toDelete) {
         if (item.message_id) {
-          // Удаляем сообщение из Telegram канала
           await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: chatId,
-              message_id: parseInt(item.message_id)
-            }),
+            body: JSON.stringify({ chat_id: chatId, message_id: parseInt(item.message_id) }),
           });
         }
       }
-      // После удаления из ТГ, удаляем записи из очереди и новостей
       const idsToDelete = toDelete.map(d => d.id);
       await supabase.from('telegram_posts').delete().in('id', idsToDelete);
-      
-      // Дополнительно: очищаем старые новости в основной таблице, 
-      // чтобы не забивать бесплатный лимит Supabase
       await supabase.from('news').delete().lt('created_at', expirationDate);
     }
 
-    // 2. ПРОВЕРКА ОЧЕРЕДИ
-    let { data: queuePost } = await supabase
-      .from('telegram_posts')
-      .select('*')
-      .is('message_id', null)
-      .not('title', 'is', null)
-      .order('created_at', { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    // 2. ПОСТОЯННАЯ СИНХРОНИЗАЦИЯ НОВОСТЕЙ (Для бота и сайта)
+    // Теперь мы ВСЕГДА проверяем свежие новости при каждом запуске Cron
+    await getCryptoNews('EN', 0, 'ALL'); 
 
-    // Если очередь пуста, запрашиваем новые 30 новостей
-    if (!queuePost) {
-      await getCryptoNews('EN', 0, 'ALL'); 
-      const { data: updatedPost } = await supabase
-        .from('telegram_posts')
-        .select('*')
-        .is('message_id', null)
-        .order('created_at', { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      queuePost = updatedPost;
-    }
-
-    if (!queuePost) {
-      return NextResponse.json({ message: "No new news available even after sync." });
-    }
-
-    // 3. ПРОВЕРКА ИНТЕРВАЛА
+    // 3. ПРОВЕРКА ИНТЕРВАЛА ДЛЯ ТЕЛЕГРАМ
     const { data: lastPost } = await supabase
       .from('telegram_posts')
       .select('created_at')
@@ -98,11 +65,25 @@ export async function GET(request: Request) {
     if (lastPost) {
       const diff = Date.now() - new Date(lastPost.created_at).getTime();
       if (diff < POST_INTERVAL_MS) {
-        return NextResponse.json({ message: "Interval active. Post skipped." });
+        // Новости обновились в БД, но в ТГ не постим - еще не прошло время
+        return NextResponse.json({ message: "News synced. TG Interval active. Post skipped." });
       }
     }
 
-    // 4. ОТПРАВКА В TELEGRAM
+    // 4. ОТПРАВКА СВЕЖЕЙ НОВОСТИ В TELEGRAM
+    const { data: queuePost } = await supabase
+      .from('telegram_posts')
+      .select('*')
+      .is('message_id', null)
+      .not('title', 'is', null)
+      .order('created_at', { ascending: false }) // Берем самую свежую!
+      .limit(1)
+      .maybeSingle();
+
+    if (!queuePost) {
+      return NextResponse.json({ message: "No news available to post." });
+    }
+
     const internalLink = `https://crypto-news-swart.vercel.app/news/${queuePost.news_id}`;
     const msg = `*${escapeMarkdown(queuePost.title)}*\n\n[Read on Terminal](${internalLink})`;
 
@@ -118,7 +99,6 @@ export async function GET(request: Request) {
 
     const tgResult = await tgRes.json();
     if (tgResult.ok) {
-      // Сохраняем ID сообщения, чтобы потом его можно было удалить
       await supabase.from('telegram_posts')
         .update({ message_id: tgResult.result.message_id.toString() })
         .eq('id', queuePost.id);
