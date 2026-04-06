@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { getCryptoNews } from '@/lib/getNews';
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
 export async function GET(request: Request) {
   try {
@@ -11,25 +10,28 @@ export async function GET(request: Request) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. Всегда скачиваем свежак для бота (база сама отсечет дубликаты благодаря CONSTRAINT)
+    // 1. Пытаемся забрать новые новости (уникальность заголовка спасет от дублей в БД)
     await getCryptoNews('EN', 0, 'ALL').catch(() => {});
 
-    // 2. Проверяем, когда был последний пост в ТГ
-    const { data: lastPost } = await supabase
+    // 2. ЖЕСТКАЯ ПРОВЕРКА: когда был последний пост в ТГ (вообще любой)
+    const { data: lastGlobalPost } = await supabase
       .from('telegram_posts')
       .select('created_at')
-      .not('message_id', 'is', null)
+      .not('message_id', 'is', null) 
       .order('created_at', { ascending: false })
       .limit(1).maybeSingle();
 
-    if (lastPost) {
-      const diff = Date.now() - new Date(lastPost.created_at).getTime();
-      if (diff < 60 * 60 * 1000) { // Если не прошел час - выходим
-        return NextResponse.json({ message: "Sync OK. TG chill." });
+    if (lastGlobalPost) {
+      const lastTime = new Date(lastGlobalPost.created_at).getTime();
+      const diff = Date.now() - lastTime;
+      const hour = 60 * 60 * 1000;
+
+      if (diff < hour) {
+        return NextResponse.json({ status: "Waiting", next_post_in: ((hour - diff)/60000).toFixed(0) + " min" });
       }
     }
 
-    // 3. Берем ОДНУ новость, которую еще не постили
+    // 3. Берем одну новость для отправки
     const { data: post } = await supabase
       .from('telegram_posts')
       .select('*')
@@ -39,12 +41,21 @@ export async function GET(request: Request) {
 
     if (post && botToken && chatId) {
       const link = `https://crypto-news-swart.vercel.app/news/${post.news_id}`;
-      const msg = encodeURIComponent(`*${post.title}*\n\n[Открыть в терминале](${link})`);
-      const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${msg}&parse_mode=Markdown`);
+      // Экранируем символы для Markdown
+      const cleanTitle = post.title.replace(/[_*[\]()~`>#+-=|{}.!]/g, '\\$&');
+      const msg = `*${cleanTitle}*\n\n[Открыть в терминале](${link})`;
+      
+      const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=MarkdownV2`);
       const tgData = await tgRes.json();
 
       if (tgData.ok) {
-        await supabase.from('telegram_posts').update({ message_id: tgData.result.message_id.toString() }).eq('id', post.id);
+        // Записываем ID сообщения, чтобы больше не трогать эту новость
+        const { error: upError } = await supabase
+          .from('telegram_posts')
+          .update({ message_id: tgData.result.message_id.toString() })
+          .eq('id', post.id);
+          
+        if (upError) console.error("Update error:", upError);
       }
     }
 
