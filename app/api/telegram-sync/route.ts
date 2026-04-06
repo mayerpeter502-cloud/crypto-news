@@ -10,28 +10,31 @@ export async function GET(request: Request) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. Пытаемся забрать новые новости (уникальность заголовка спасет от дублей в БД)
+    // 1. Сначала просто обновляем новости в базе (пусть лежат для бота)
     await getCryptoNews('EN', 0, 'ALL').catch(() => {});
 
-    // 2. ЖЕСТКАЯ ПРОВЕРКА: когда был последний пост в ТГ (вообще любой)
-    const { data: lastGlobalPost } = await supabase
-      .from('telegram_posts')
-      .select('created_at')
-      .not('message_id', 'is', null) 
-      .order('created_at', { ascending: false })
-      .limit(1).maybeSingle();
+    // 2. ПРОВЕРКА ТАЙМЕРА (Главный предохранитель)
+    const { data: settings } = await supabase
+      .from('bot_settings')
+      .select('last_tg_post_at')
+      .eq('id', 1)
+      .single();
 
-    if (lastGlobalPost) {
-      const lastTime = new Date(lastGlobalPost.created_at).getTime();
-      const diff = Date.now() - lastTime;
+    if (settings?.last_tg_post_at) {
+      const lastPostTime = new Date(settings.last_tg_post_at).getTime();
+      const diff = Date.now() - lastPostTime;
       const hour = 60 * 60 * 1000;
 
       if (diff < hour) {
-        return NextResponse.json({ status: "Waiting", next_post_in: ((hour - diff)/60000).toFixed(0) + " min" });
+        // ЧАС ЕЩЕ НЕ ПРОШЕЛ - выходим
+        return NextResponse.json({ 
+          status: "Wait", 
+          next_post_in_min: ((hour - diff) / 60000).toFixed(0) 
+        });
       }
     }
 
-    // 3. Берем одну новость для отправки
+    // 3. Если мы здесь — значит час ПРОШЕЛ. Ищем новость для отправки
     const { data: post } = await supabase
       .from('telegram_posts')
       .select('*')
@@ -41,7 +44,6 @@ export async function GET(request: Request) {
 
     if (post && botToken && chatId) {
       const link = `https://crypto-news-swart.vercel.app/news/${post.news_id}`;
-      // Экранируем символы для Markdown
       const cleanTitle = post.title.replace(/[_*[\]()~`>#+-=|{}.!]/g, '\\$&');
       const msg = `*${cleanTitle}*\n\n[Открыть в терминале](${link})`;
       
@@ -49,16 +51,18 @@ export async function GET(request: Request) {
       const tgData = await tgRes.json();
 
       if (tgData.ok) {
-        // Записываем ID сообщения, чтобы больше не трогать эту новость
-        const { error: upError } = await supabase
-          .from('telegram_posts')
+        // ОБНОВЛЯЕМ ТАЙМЕР (Записываем текущее время)
+        await supabase.from('bot_settings')
+          .update({ last_tg_post_at: new Date().toISOString() })
+          .eq('id', 1);
+          
+        // Помечаем новость в основной таблице (на всякий случай)
+        await supabase.from('telegram_posts')
           .update({ message_id: tgData.result.message_id.toString() })
           .eq('id', post.id);
-          
-        if (upError) console.error("Update error:", upError);
       }
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, message: "Done" });
   } catch (e) { return NextResponse.json({ error: "error" }); }
 }
