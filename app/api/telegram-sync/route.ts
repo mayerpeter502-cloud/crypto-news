@@ -10,10 +10,17 @@ export async function GET(request: Request) {
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. Сначала просто обновляем новости в базе (пусть лежат для бота)
+    // --- 1. ОЧИСТКА МУСОРА (Удаляем новости старше 24 часов) ---
+    const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    await supabase
+      .from('telegram_posts')
+      .delete()
+      .lt('created_at', dayAgo);
+
+    // --- 2. ОБНОВЛЕНИЕ БАЗЫ (Загружаем свежие новости) ---
     await getCryptoNews('EN', 0, 'ALL').catch(() => {});
 
-    // 2. ПРОВЕРКА ТАЙМЕРА (Главный предохранитель)
+    // --- 3. ПРОВЕРКА ТАЙМЕРА (Замок на 1 час для постов в ТГ) ---
     const { data: settings } = await supabase
       .from('bot_settings')
       .select('last_tg_post_at')
@@ -26,7 +33,7 @@ export async function GET(request: Request) {
       const hour = 60 * 60 * 1000;
 
       if (diff < hour) {
-        // ЧАС ЕЩЕ НЕ ПРОШЕЛ - выходим
+        // Если час еще не прошел — просто выходим, база уже обновлена и очищена
         return NextResponse.json({ 
           status: "Wait", 
           next_post_in_min: ((hour - diff) / 60000).toFixed(0) 
@@ -34,7 +41,7 @@ export async function GET(request: Request) {
       }
     }
 
-    // 3. Если мы здесь — значит час ПРОШЕЛ. Ищем новость для отправки
+    // --- 4. ВЫБОР И ОТПРАВКА НОВОСТИ (Раз в час) ---
     const { data: post } = await supabase
       .from('telegram_posts')
       .select('*')
@@ -44,6 +51,7 @@ export async function GET(request: Request) {
 
     if (post && botToken && chatId) {
       const link = `https://crypto-news-swart.vercel.app/news/${post.news_id}`;
+      // Экранируем спецсимволы для корректного отображения в Telegram MarkdownV2
       const cleanTitle = post.title.replace(/[_*[\]()~`>#+-=|{}.!]/g, '\\$&');
       const msg = `*${cleanTitle}*\n\n[Открыть в терминале](${link})`;
       
@@ -51,18 +59,21 @@ export async function GET(request: Request) {
       const tgData = await tgRes.json();
 
       if (tgData.ok) {
-        // ОБНОВЛЯЕМ ТАЙМЕР (Записываем текущее время)
+        // ОБНОВЛЯЕМ ТАЙМЕР (Записываем текущее время как время последнего поста)
         await supabase.from('bot_settings')
           .update({ last_tg_post_at: new Date().toISOString() })
           .eq('id', 1);
           
-        // Помечаем новость в основной таблице (на всякий случай)
+        // Помечаем новость в базе, чтобы не отправить повторно
         await supabase.from('telegram_posts')
           .update({ message_id: tgData.result.message_id.toString() })
           .eq('id', post.id);
       }
     }
 
-    return NextResponse.json({ success: true, message: "Done" });
-  } catch (e) { return NextResponse.json({ error: "error" }); }
+    return NextResponse.json({ success: true, message: "Cleaned, Synced and Processed" });
+  } catch (e) { 
+    console.error("Critical error in route:", e);
+    return NextResponse.json({ error: "Internal Server Error" }); 
+  }
 }
