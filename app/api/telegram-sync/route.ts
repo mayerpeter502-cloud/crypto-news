@@ -18,7 +18,12 @@ export async function GET(request: Request) {
       .lt('created_at', dayAgo);
 
     // --- 2. ОБНОВЛЕНИЕ БАЗЫ (Загружаем свежие новости) ---
-    await getCryptoNews('EN', 0, 'ALL').catch(() => {});
+// Оборачиваем в try-catch, чтобы ошибка дубликатов не ломала весь роут
+try {
+  await getCryptoNews('EN', 0, 'ALL');
+} catch (error) {
+  console.log("Дубликаты новостей пропущены");
+}
 
     // --- 3. ПРОВЕРКА ТАЙМЕРА (Замок на 1 час для постов в ТГ) ---
     const { data: settings } = await supabase
