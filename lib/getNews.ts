@@ -1,6 +1,13 @@
 // lib/getNews.ts
 import { createClient } from '@supabase/supabase-js';
 
+// --- ЭТА ФУНКЦИЯ КРИТИЧЕСКИ ВАЖНА ДЛЯ СБОРКИ ПРОЕКТА ---
+// Она используется в NewsCard.tsx. Без её экспорта Vercel выдает ошибку.
+export async function translateSingleText(text: string) {
+  // Возвращаем текст без изменений (оригинал)
+  return text;
+}
+
 export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number = 0, category: string = 'ALL') {
   const apiKey = process.env.NEXT_PUBLIC_CRYPTO_KEY || '';
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -17,6 +24,20 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
     if (data.Response === "Error") return [];
 
     if (data && data.Data && Array.isArray(data.Data)) {
+      
+      // 1. ПОДГОТОВКА ДАННЫХ ДЛЯ САЙТА (Frontend)
+      // Сопоставляем поля API с полями, которые ожидают твои компоненты NewsCard
+      const articles = data.Data.map((article: any) => ({
+        id: article.id.toString(),
+        title: article.title || '',
+        description: article.body ? article.body.substring(0, 160) + "..." : "",
+        date: new Date(article.published_on * 1000).toLocaleDateString('en-US'),
+        published_on: article.published_on,
+        image: article.imageurl || '',
+        url: article.url || '#'
+      }));
+
+      // 2. СОХРАНЕНИЕ В SUPABASE (Для Telegram-бота)
       if (supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder')) {
         try {
           const supabase = createClient(supabaseUrl, supabaseKey);
@@ -28,10 +49,12 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
             image_url: n.imageurl,
             body: n.body,
             categories: n.categories,
-            // УБРАЛИ message_id: null, чтобы не затирать статус уже отправленных новостей
+            // ВАЖНО: Мы НЕ указываем message_id: null здесь.
+            // Если новость новая — в БД она создастся с null по умолчанию.
+            // Если новость старая — upsert её не тронет, и существующий message_id (цифры) сохранится.
           }));
           
-          // МЕНЯЕМ news_id на title, чтобы база не ругалась на дубликаты заголовков
+          // Используем upsert по заголовку (title), чтобы избежать ошибки уникальности
           const { error } = await supabase
             .from('telegram_posts')
             .upsert(toSave, { 
@@ -39,15 +62,22 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
               ignoreDuplicates: true 
             });
           
-          if (!error) console.log("--- DB: База обновлена (дубликаты пропущены) ---");
+          if (!error) {
+            console.log("--- DB: Новости синхронизированы успешно ---");
+          } else {
+            console.error("--- DB UPSERT ERROR: ---", error.message);
+          }
         } catch (dbErr) {
-          console.error("--- DB ERROR: ---", dbErr);
+          console.error("--- DB CRITICAL ERROR: ---", dbErr);
         }
       }
-      return data.Data;
+
+      // Возвращаем отформатированные статьи для отображения на странице
+      return articles;
     }
     return [];
   } catch (error) {
+    console.error("--- GET NEWS ERROR: ---", error);
     return [];
   }
 }
