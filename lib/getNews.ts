@@ -14,57 +14,40 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
     const res = await fetch(url, { cache: 'no-store' }); 
     const data = await res.json();
 
-    if (data.Response === "Error") {
-      console.error("--- API ERROR: ---", data.Message);
-      return [];
-    }
+    if (data.Response === "Error") return [];
 
     if (data && data.Data && Array.isArray(data.Data)) {
-      const articles = data.Data.map((article: any) => ({
-        id: article.id.toString(),
-        title: article.title || '',
-        description: article.body ? article.body.substring(0, 160) + "..." : "",
-        date: new Date(article.published_on * 1000).toLocaleDateString('en-US'),
-        published_on: article.published_on,
-        image: article.imageurl || '',
-        url: article.url || '#'
-      }));
-
-      // Сохранение в Supabase
       if (supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder')) {
         try {
           const supabase = createClient(supabaseUrl, supabaseKey);
           
-          const toSave = data.Data.slice(0, 100).map((n: any) => ({
+          const toSave = data.Data.slice(0, 50).map((n: any) => ({
             news_id: n.id.toString(),
             title: n.title,
             link: n.url,
             image_url: n.imageurl,
             body: n.body,
             categories: n.categories,
-            // Сбрасываем message_id, чтобы новые новости попали в очередь на публикацию
-            message_id: null 
+            // УБРАЛИ message_id: null, чтобы не затирать статус уже отправленных новостей
           }));
           
-          // ВАЖНО: Используем await, чтобы Cron-скрипт дождался завершения записи
-          const { error } = await supabase.from('telegram_posts').upsert(toSave, { onConflict: 'news_id' });
+          // МЕНЯЕМ news_id на title, чтобы база не ругалась на дубликаты заголовков
+          const { error } = await supabase
+            .from('telegram_posts')
+            .upsert(toSave, { 
+              onConflict: 'title', 
+              ignoreDuplicates: true 
+            });
           
-          if (!error) console.log("--- DB: База успешно обновлена новыми новостями ---");
-          else console.error("--- DB ERROR: ---", error.message);
-          
+          if (!error) console.log("--- DB: База обновлена (дубликаты пропущены) ---");
         } catch (dbErr) {
-          console.error("--- DB CRITICAL ERROR: ---", dbErr);
+          console.error("--- DB ERROR: ---", dbErr);
         }
       }
-
-      return articles;
+      return data.Data;
     }
-
     return [];
   } catch (error) {
-    console.error("--- CRITICAL FETCH ERROR: ---", error);
     return [];
   }
 }
-
-export async function translateSingleText(text: string) { return text; }
