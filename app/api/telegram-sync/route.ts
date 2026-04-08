@@ -4,6 +4,28 @@ import { getCryptoNews } from '@/lib/getNews';
 
 export const dynamic = 'force-dynamic';
 
+// --- НОВАЯ ФУНКЦИЯ ОЦЕНКИ КОНТЕНТА ---
+function analyzeSentiment(title: string): 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' {
+  const text = title.toLowerCase();
+  
+  // Ключевые слова для позитива
+  const positiveWords = [
+    'bullish', 'surge', 'pump', 'growth', 'gain', 'support', 'partnership', 
+    'listing', 'buy', 'adoption', 'profit', 'up', 'breakout', 'ath'
+  ];
+  
+  // Ключевые слова для негатива
+  const negativeWords = [
+    'bearish', 'drop', 'dump', 'crash', 'fell', 'scam', 'hack', 'lawsuit', 
+    'ban', 'regulation', 'sell', 'liquidated', 'down', 'resistance', 'sec'
+  ];
+
+  if (positiveWords.some(word => text.includes(word))) return 'POSITIVE';
+  if (negativeWords.some(word => text.includes(word))) return 'NEGATIVE';
+  
+  return 'NEUTRAL';
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -23,10 +45,8 @@ export async function GET(request: Request) {
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
     // --- 1. АВТО-ОЧИСТКА СТАРЫХ ПОСТОВ (24 ЧАСА) ---
-    // Это гарантирует, что база не будет переполняться
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    // Сначала ищем посты в ТГ, которые пора удалить из канала
     const { data: expiredPosts } = await supabase
       .from('telegram_posts')
       .select('id, message_id')
@@ -40,28 +60,25 @@ export async function GET(request: Request) {
         } catch (err) { console.error("Ошибка удаления из ТГ:", err); }
       }
     }
-
-    // Удаляем всё старое из базы (и опубликованное, и нет)
     await supabase.from('telegram_posts').delete().lt('created_at', dayAgo);
-
 
     // --- 2. ОБНОВЛЕНИЕ ДАННЫХ ---
     if (mode === 'buffer') {
-      // Для торгового бота (каждые 5 мин)
       const news = await getCryptoNews('EN', 1, 'ALL'); 
       if (news && news.length > 0) {
           const latest = news[0];
+          // ИСПОЛЬЗУЕМ АНАЛИЗАТОР ПЕРЕД ВСТАВКОЙ
+          const sentiment = analyzeSentiment(latest.title);
+          
           await supabase.from('bot_news_buffer').insert({
               content: latest.title,
-              sentiment: latest.sentiment || 'NEUTRAL'
+              sentiment: sentiment // Теперь здесь будет POSITIVE/NEGATIVE/NEUTRAL
           });
       }
       return NextResponse.json({ success: true, target: "bot_buffer" });
     }
 
-    // Основное обновление для ТГ и сайта
     await getCryptoNews('EN', 0, 'ALL');
-
 
     // --- 3. ПОСТИНГ В TELEGRAM (РАЗ В ЧАС) ---
     const { data: settings } = await supabase.from('bot_settings').select('last_tg_post_at').eq('id', 1).single();
@@ -72,7 +89,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Берем самую свежую новость, которая еще не постилась
     const { data: post } = await supabase
       .from('telegram_posts')
       .select('*')
@@ -90,9 +106,7 @@ export async function GET(request: Request) {
       const tgData = await tgRes.json();
 
       if (tgData.ok) {
-        // Обновляем время последнего поста
         await supabase.from('bot_settings').update({ last_tg_post_at: new Date().toISOString() }).eq('id', 1);
-        // Записываем ID сообщения, чтобы через 24 часа скрипт его удалил
         await supabase.from('telegram_posts').update({ message_id: tgData.result.message_id.toString() }).eq('id', post.id);
       }
     }
