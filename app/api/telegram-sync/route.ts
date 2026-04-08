@@ -8,9 +8,8 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key');
-    const mode = searchParams.get('mode'); // Получаем режим (buffer или пусто)
+    const mode = searchParams.get('mode');
 
-    // 0. Проверка безопасности
     if (key !== '9)hSyy5K') {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -20,32 +19,14 @@ export async function GET(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
-    // --- ВЕТКА 1: БЫСТРОЕ ОБНОВЛЕНИЕ ДЛЯ ТОРГОВОГО БОТА (каждые 5 мин) ---
-    if (mode === 'buffer') {
-      // Получаем новости (функция getCryptoNews должна уметь возвращать данные или делать вставку)
-      // Для экономии ресурсов запрашиваем минимум данных
-      const news = await getCryptoNews('EN', 1, 'ALL'); 
-      
-      // Предположим, news - это массив последних новостей из твоей функции
-      // Мы просто дублируем самую свежую в bot_news_buffer
-      // ВАЖНО: Убедись, что getCryptoNews возвращает массив или объект новости
-      if (news && news.length > 0) {
-          const latest = news[0];
-          await supabase.from('bot_news_buffer').insert({
-              content: latest.title,
-              sentiment: latest.sentiment || 'NEUTRAL' // Если у тебя уже есть оценка ИИ
-          });
-      }
-
-      return NextResponse.json({ success: true, target: "bot_buffer" });
-    }
-
-    // --- ВЕТКА 2: ПОЛНАЯ ЛОГИКА ДЛЯ TELEGRAM (раз в час) ---
     const botToken = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
 
-    // 1. Очистка старого (только раз в час, чтобы не грузить базу)
+    // --- 1. АВТО-ОЧИСТКА СТАРЫХ ПОСТОВ (24 ЧАСА) ---
+    // Это гарантирует, что база не будет переполняться
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    
+    // Сначала ищем посты в ТГ, которые пора удалить из канала
     const { data: expiredPosts } = await supabase
       .from('telegram_posts')
       .select('id, message_id')
@@ -56,15 +37,33 @@ export async function GET(request: Request) {
       for (const post of expiredPosts) {
         try {
           await fetch(`https://api.telegram.org/bot${botToken}/deleteMessage?chat_id=${chatId}&message_id=${post.message_id}`);
-        } catch (err) { console.error("TG Delete Err:", err); }
+        } catch (err) { console.error("Ошибка удаления из ТГ:", err); }
       }
     }
+
+    // Удаляем всё старое из базы (и опубликованное, и нет)
     await supabase.from('telegram_posts').delete().lt('created_at', dayAgo);
 
-    // 2. Основное обновление новостей для сайта и ТГ
+
+    // --- 2. ОБНОВЛЕНИЕ ДАННЫХ ---
+    if (mode === 'buffer') {
+      // Для торгового бота (каждые 5 мин)
+      const news = await getCryptoNews('EN', 1, 'ALL'); 
+      if (news && news.length > 0) {
+          const latest = news[0];
+          await supabase.from('bot_news_buffer').insert({
+              content: latest.title,
+              sentiment: latest.sentiment || 'NEUTRAL'
+          });
+      }
+      return NextResponse.json({ success: true, target: "bot_buffer" });
+    }
+
+    // Основное обновление для ТГ и сайта
     await getCryptoNews('EN', 0, 'ALL');
 
-    // 3. Проверка кулдауна ТГ (1 час)
+
+    // --- 3. ПОСТИНГ В TELEGRAM (РАЗ В ЧАС) ---
     const { data: settings } = await supabase.from('bot_settings').select('last_tg_post_at').eq('id', 1).single();
     if (settings?.last_tg_post_at) {
       const diff = Date.now() - new Date(settings.last_tg_post_at).getTime();
@@ -73,19 +72,27 @@ export async function GET(request: Request) {
       }
     }
 
-    // 4. Постинг в Telegram
-    const { data: post } = await supabase.from('telegram_posts').select('*').is('message_id', null).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    // Берем самую свежую новость, которая еще не постилась
+    const { data: post } = await supabase
+      .from('telegram_posts')
+      .select('*')
+      .is('message_id', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
     if (post && botToken && chatId) {
       const link = `https://crypto-news-swart.vercel.app/news/${post.news_id}`;
       const cleanTitle = post.title.replace(/[_*[\]()~`>#+-=|{}.!]/g, '\\$&');
-      const msg = `*${cleanTitle}*\n\n[Открыть в терминале](${link})`;
+      const msg = `*${cleanTitle}*\\n\\n[Открыть в терминале](${link})`;
       
       const tgRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=MarkdownV2`);
       const tgData = await tgRes.json();
 
       if (tgData.ok) {
+        // Обновляем время последнего поста
         await supabase.from('bot_settings').update({ last_tg_post_at: new Date().toISOString() }).eq('id', 1);
+        // Записываем ID сообщения, чтобы через 24 часа скрипт его удалил
         await supabase.from('telegram_posts').update({ message_id: tgData.result.message_id.toString() }).eq('id', post.id);
       }
     }
