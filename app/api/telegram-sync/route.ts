@@ -8,20 +8,31 @@ export const dynamic = 'force-dynamic';
 function analyzeSentiment(title: string): 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL' {
   const text = title.toLowerCase();
   
-  // Ключевые слова для позитива
+  // 1. ГЛОБАЛЬНЫЕ ТЕМЫ (Влияют на BTC без прямого упоминания)
+  const globalCrisisWords = ['war', 'hack', 'exploit', 'fed', 'feds', 'sec', 'ban', 'inflation', 'cpi', 'conflict'];
+  const isGlobalEvent = globalCrisisWords.some(word => text.includes(word));
+
+  // 2. ПРОВЕРКА НА БИТКОИН
+  const isBitcoinRelated = text.includes('btc') || text.includes('bitcoin');
+
+  // Если это не глобальное ЧП и не новость про Биткоин — помечаем как нейтральную
+  if (!isGlobalEvent && !isBitcoinRelated) return 'NEUTRAL';
+
+  // 3. Ключевые слова для позитива
   const positiveWords = [
     'bullish', 'surge', 'pump', 'growth', 'gain', 'support', 'partnership', 
-    'listing', 'buy', 'adoption', 'profit', 'up', 'breakout', 'ath'
+    'listing', 'buy', 'adoption', 'profit', 'up', 'breakout', 'ath', 'rally'
   ];
   
-  // Ключевые слова для негатива
+  // 4. Ключевые слова для негатива
   const negativeWords = [
     'bearish', 'drop', 'dump', 'crash', 'fell', 'scam', 'hack', 'lawsuit', 
     'ban', 'regulation', 'sell', 'liquidated', 'down', 'resistance', 'sec'
   ];
 
-  if (positiveWords.some(word => text.includes(word))) return 'POSITIVE';
+  // Сначала проверяем на негатив для безопасности
   if (negativeWords.some(word => text.includes(word))) return 'NEGATIVE';
+  if (positiveWords.some(word => text.includes(word))) return 'POSITIVE';
   
   return 'NEUTRAL';
 }
@@ -72,7 +83,7 @@ export async function GET(request: Request) {
           
           await supabase.from('bot_news_buffer').insert({
               content: latest.title,
-              sentiment: sentiment // Теперь здесь будет POSITIVE/NEGATIVE/NEUTRAL
+              sentiment: sentiment 
           });
       }
       return NextResponse.json({ success: true, target: "bot_buffer" });
