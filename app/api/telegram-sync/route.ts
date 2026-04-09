@@ -75,19 +75,28 @@ export async function GET(request: Request) {
 
     // --- 2. ОБНОВЛЕНИЕ ДАННЫХ ---
     if (mode === 'buffer') {
-      const news = await getCryptoNews('EN', 1, 'ALL'); 
-      if (news && news.length > 0) {
-          const latest = news[0];
-          // ИСПОЛЬЗУЕМ АНАЛИЗАТОР ПЕРЕД ВСТАВКОЙ
+  const news = await getCryptoNews('EN', 1, 'ALL'); 
+  if (news && news.length > 0) {
+      const latest = news[0];
+
+      // ПРОВЕРКА: Есть ли уже новость с таким заголовком в базе?
+      const { data: existing } = await supabase
+          .from('bot_news_buffer')
+          .select('id')
+          .eq('content', latest.title)
+          .maybeSingle();
+
+      // Вставляем только если новости еще нет в таблице
+      if (!existing) {
           const sentiment = analyzeSentiment(latest.title);
-          
           await supabase.from('bot_news_buffer').insert({
               content: latest.title,
               sentiment: sentiment 
           });
       }
-      return NextResponse.json({ success: true, target: "bot_buffer" });
-    }
+  }
+  return NextResponse.json({ success: true, target: "bot_buffer" });
+}
 
     await getCryptoNews('EN', 0, 'ALL');
 
