@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google"; 
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 // 1. Настраиваем шрифт Inter
@@ -39,6 +40,7 @@ export default function RootLayout({
     <html lang="en" className={inter.variable}>
       <body className="antialiased font-sans">
         {children}
+        <Analytics />
       </body>
     </html>
   );
