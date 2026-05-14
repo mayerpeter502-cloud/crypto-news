@@ -1,84 +1,63 @@
-# \# Crypto Pulse News AI
+Crypto Pulse News AI
 
-# 
+An intelligent cryptocurrency news aggregator featuring automated AI translation and seamless Telegram channel integration.
 
-# An intelligent cryptocurrency news aggregator featuring automated AI translation and seamless Telegram channel integration.
+🚀 Key Features
 
-# 
+Real-time Monitoring: Instant fetching of live cryptocurrency news and market updates via CoinDesk API.
 
-# \## 🚀 Key Features
+Smart AI Translation: Automatic high-quality translation of news headlines and descriptions to ensure global content accessibility.
 
-# \* \*\*Real-time Monitoring\*\*: Instant fetching of live cryptocurrency news and market updates via CoinDesk API.
+Telegram Integration: Professional dashboard for administrators to review and publish curated news directly to Telegram channels with a single click.
 
-# \* \*\*Smart AI Translation\*\*: Automatic high-quality translation of news headlines and descriptions to ensure global content accessibility.
+Dynamic Media Assets: Smart image selection system that fetches relevant, high-quality visuals for every news piece using the Unsplash API.
 
-# \* \*\*Telegram Integration\*\*: Professional dashboard for administrators to review and publish curated news directly to Telegram channels with a single click.
+Responsive Design: Fully optimized for mobile, tablet, and desktop viewing.
 
-# \* \*\*Dynamic Media Assets\*\*: Smart image selection system that fetches relevant, high-quality visuals for every news piece using the Unsplash API.
+🛠 Tech Stack
 
-# \* \*\*Responsive Design\*\*: Fully optimized for mobile, tablet, and desktop viewing.
+Frontend Framework: Next.js 16.1.6 (utilizing Turbopack for lightning-fast builds)
 
-# 
+Language: TypeScript for robust, type-safe development
 
-# \## 🛠 Tech Stack
+Styling: Tailwind CSS for a modern, utility-first UI
 
-# \* \*\*Frontend Framework\*\*: Next.js 16.1.6 (utilizing Turbopack for lightning-fast builds)
+Backend & Database: Supabase (PostgreSQL) for secure data persistence and management
 
-# \* \[cite\_start]\*\*Language\*\*: TypeScript for robust, type-safe development \[cite: 5]
+Deployment: Vercel for continuous integration and high-performance hosting
 
-# \* \[cite\_start]\*\*Styling\*\*: Tailwind CSS for a modern, utility-first UI \[cite: 9]
+External APIs: CoinDesk (Market Data), Unsplash (Media).
 
-# \* \[cite\_start]\*\*Backend \& Database\*\*: Supabase (PostgreSQL) for secure data persistence and management \[cite: 10]
+📂 Project Structure
 
-# \* \[cite\_start]\*\*Deployment\*\*: Vercel for continuous integration and high-performance hosting \[cite: 10]
+/app: Core application logic using Next.js App Router.
 
-# \* \*\*External APIs\*\*: CoinDesk (Market Data), Unsplash (Media).
+/components: Reusable UI components built with Tailwind CSS.
 
-# 
+/lib: Utility functions for API integrations and data processing.
 
-# \## 📂 Project Structure
+/services: Logic for automated translation and Telegram bot communication.
 
-# \* `/app`: Core application logic using Next.js App Router.
+⚙️ Getting Started
 
-# \* `/components`: Reusable UI components built with Tailwind CSS.
+Clone the repository:
 
-# \* `/lib`: Utility functions for API integrations and data processing.
+git clone https://github.com/mayerpeter502-cloud/crypto-news.git
 
-# \* `/services`: Logic for automated translation and Telegram bot communication.
 
-# 
+Install dependencies:
 
-# \## ⚙️ Getting Started
+npm install
 
-# 1\. \*\*Clone the repository\*\*:
 
-# &#x20;  ```bash
+Configure Environment Variables:
+Create a .env.local file and add your API keys for CoinDesk, Telegram Bot, and Supabase.
 
-# &#x20;  git clone \[https://github.com/mayerpeter502-cloud/crypto-news.git](https://github.com/mayerpeter502-cloud/crypto-news.git)
+Run the development server:
 
-# Install dependencies:
+npm run dev
 
-# 
 
-# Bash
+📄 License
 
-# npm install
-
-# Configure Environment Variables:
-
-# Create a .env.local file and add your API keys for CoinDesk, Telegram Bot, and Supabase.
-
-# 
-
-# Run the development server:
-
-# 
-
-# Bash
-
-# npm run dev
-
-# 📄 License
-
-# This project is developed as part of a professional full-stack portfolio.
-
+This project is developed as part of a professional full-stack portfolio.
