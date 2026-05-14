@@ -9,75 +9,57 @@ export async function translateSingleText(text: string) {
 }
 
 export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number = 0, category: string = 'ALL') {
-  const apiKey = process.env.NEXT_PUBLIC_CRYPTO_KEY || '';
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
   try {
-    let url = `https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=${apiKey}`;
-    if (category !== 'ALL') url += `&categories=${category}`;
-    if (lastTimestamp) url += `&lts=${lastTimestamp}`;
+    // API без лимитов и ключей
+    let url = `https://cryptocurrency.cv/api/v1/news?limit=50`;
+    if (category !== 'ALL') {
+      url += `&filter=${category.toLowerCase()}`;
+    }
 
-    const res = await fetch(url, { cache: 'no-store' }); 
-    const data = await res.json();
+    const res = await fetch(url, { 
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    });
+    
+    const result = await res.json();
+    const rawData = Array.isArray(result) ? result : result.data;
 
-    if (data.Response === "Error") return [];
+    if (rawData && Array.isArray(rawData)) {
+      if (supabaseUrl && supabaseKey) {
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        const toSave = rawData.map((n: any) => ({
+          news_id: n.id?.toString() || Math.random().toString(36),
+          title: n.title,
+          link: n.url,
+          image_url: n.image_url || n.image || '', 
+          body: n.description || n.body || '',
+          categories: n.category || category,
+        }));
 
-    if (data && data.Data && Array.isArray(data.Data)) {
-      
-      // 1. ПОДГОТОВКА ДАННЫХ ДЛЯ САЙТА (Frontend)
-      // Сопоставляем поля API с полями, которые ожидают твои компоненты NewsCard
-      const articles = data.Data.map((article: any) => ({
-        id: article.id.toString(),
-        title: article.title || '',
-        description: article.body ? article.body.substring(0, 160) + "..." : "",
-        date: new Date(article.published_on * 1000).toLocaleDateString('en-US'),
-        published_on: article.published_on,
-        image: article.imageurl || '',
-        url: article.url || '#'
-      }));
-
-      // 2. СОХРАНЕНИЕ В SUPABASE (Для Telegram-бота)
-      if (supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder')) {
-        try {
-          const supabase = createClient(supabaseUrl, supabaseKey);
-          
-          const toSave = data.Data.slice(0, 50).map((n: any) => ({
-            news_id: n.id.toString(),
-            title: n.title,
-            link: n.url,
-            image_url: n.imageurl,
-            body: n.body,
-            categories: n.categories,
-            // ВАЖНО: Мы НЕ указываем message_id: null здесь.
-            // Если новость новая — в БД она создастся с null по умолчанию.
-            // Если новость старая — upsert её не тронет, и существующий message_id (цифры) сохранится.
-          }));
-          
-          // Используем upsert по заголовку (title), чтобы избежать ошибки уникальности
-          const { error } = await supabase
-            .from('telegram_posts')
-            .upsert(toSave, { 
-              onConflict: 'title', 
-              ignoreDuplicates: true 
-            });
-          
-          if (!error) {
-            console.log("--- DB: Новости синхронизированы успешно ---");
-          } else {
-            console.error("--- DB UPSERT ERROR: ---", error.message);
-          }
-        } catch (dbErr) {
-          console.error("--- DB CRITICAL ERROR: ---", dbErr);
-        }
+        await supabase
+          .from('telegram_posts')
+          .upsert(toSave, { onConflict: 'title', ignoreDuplicates: true });
       }
 
-      // Возвращаем отформатированные статьи для отображения на странице
-      return articles;
+      // Возвращаем данные для NewsCard
+      return rawData.map((n: any) => ({
+        id: n.id?.toString(),
+        title: n.title,
+        description: n.description || n.body || '',
+        date: n.published_at ? new Date(n.published_at).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
+        published_on: n.published_at ? Math.floor(new Date(n.published_at).getTime() / 1000) : Math.floor(Date.now() / 1000),
+        image: n.image_url || n.image || '',
+        url: n.url,
+        source: n.source_name || 'Crypto News'
+      }));
     }
     return [];
-  } catch (error) {
-    console.error("--- GET NEWS ERROR: ---", error);
+  } catch (err) {
+    console.error("--- API Error: ---", err);
     return [];
   }
 }
