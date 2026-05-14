@@ -46,16 +46,19 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
       }
 
       // Возвращаем данные для NewsCard
-      return rawData.map((n: any) => ({
-        id: n.id?.toString(),
-        title: n.title,
-        description: n.description || n.body || '',
-        date: n.published_at ? new Date(n.published_at).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
-        published_on: n.published_at ? Math.floor(new Date(n.published_at).getTime() / 1000) : Math.floor(Date.now() / 1000),
-        image: n.image_url || n.image || '',
-        url: n.url,
-        source: n.source_name || 'Crypto News'
-      }));
+      return rawData.map((n: any) => {
+        const pubDate = n.published_at ? new Date(n.published_at) : new Date();
+        return {
+          id: n.id?.toString(),
+          title: n.title,
+          description: n.description || n.body || '',
+          date: pubDate.toLocaleDateString('en-US'),
+          published_on: Math.floor(pubDate.getTime() / 1000),
+          image: n.image_url || n.image || '',
+          url: n.url,
+          source: n.source_name || 'Crypto News'
+        };
+      });
     }
     return [];
   } catch (err) {
