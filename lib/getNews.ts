@@ -8,7 +8,7 @@ export async function translateSingleText(text: string) {
 export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number = 0, category: string = 'ALL') {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-  const newsDataApiKey = process.env.NEWDATA_API_KEY;
+  const newsDataApiKey = process.env.NEXT_PUBLIC_NEWDATA_API_KEY;
 
   try {
     console.log(`🔄 Fetching news for: ${category}`);
