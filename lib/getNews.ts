@@ -1,94 +1,83 @@
 // lib/getNews.ts
 import { createClient } from '@supabase/supabase-js';
 
+// --- ЭТА ФУНКЦИЯ КРИТИЧЕСКИ ВАЖНА ДЛЯ СБОРКИ ПРОЕКТА ---
+// Она используется в NewsCard.tsx. Без её экспорта Vercel выдает ошибку.
 export async function translateSingleText(text: string) {
+  // Возвращаем текст без изменений (оригинал)
   return text;
 }
 
 export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number = 0, category: string = 'ALL') {
+  const apiKey = process.env.NEXT_PUBLIC_CRYPTO_KEY || '';
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-  const newsDataApiKey = process.env.NEXT_PUBLIC_NEWDATA_API_KEY;
 
   try {
-    console.log(`🔄 Fetching news for: ${category}`);
-    
-    // Соответствие твоим кнопкам: All News, Bitcoin, Ethereum, Solana, Regulation
-    const categoryMap: Record<string, string> = {
-      'ALL': 'cryptocurrency',
-      'BITCOIN': 'bitcoin',
-      'ETHEREUM': 'ethereum',
-      'SOLANA': 'solana',
-      'REGULATION': 'crypto regulation'
-    };
+    let url = `https://min-api.cryptocompare.com/data/v2/news/?lang=EN&api_key=${apiKey}`;
+    if (category !== 'ALL') url += `&categories=${category}`;
+    if (lastTimestamp) url += `&lts=${lastTimestamp}`;
 
-    const query = categoryMap[category] || 'cryptocurrency';
-    
-    // Добавляем параметр timeframe, если есть lastTimestamp (условно)
-    let url = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&q=${encodeURIComponent(query)}&language=en`;
-    
-    // Ограничиваем тематику, чтобы не лезла политика
-    url += `&category=technology,business`;
+    const res = await fetch(url, { cache: 'no-store' }); 
+    const data = await res.json();
 
-    // Замени блок fetch на этот:
-const res = await fetch(url, { 
-  next: { revalidate: 300 } // Обновление раз в 5 минут
-});
+    if (data.Response === "Error") return [];
 
-    if (!res.ok) throw new Error(`NewsData status: ${res.status}`);
-
-    const result = await res.json();
-
-    if (!result.results || result.results.length === 0) {
-      return getFallbackNews();
-    }
-
-    // 2. Стабильное сохранение без дублей (по Title)
-    if (supabaseUrl && supabaseKey) {
-      const supabase = createClient(supabaseUrl, supabaseKey);
+    if (data && data.Data && Array.isArray(data.Data)) {
       
-      const toSave = result.results.map((n: any) => ({
-        // Создаем стабильный ID на основе заголовка, если article_id нет
-        news_id: n.article_id || Buffer.from(n.title).toString('base64').slice(0, 25),
-        title: n.title,
-        link: n.link,
-        image_url: n.image_url || '', 
-        body: n.description || '',
-        categories: category,
-        published_at: n.pubDate
+      // 1. ПОДГОТОВКА ДАННЫХ ДЛЯ САЙТА (Frontend)
+      // Сопоставляем поля API с полями, которые ожидают твои компоненты NewsCard
+      const articles = data.Data.map((article: any) => ({
+        id: article.id.toString(),
+        title: article.title || '',
+        description: article.body ? article.body.substring(0, 160) + "..." : "",
+        date: new Date(article.published_on * 1000).toLocaleDateString('en-US'),
+        published_on: article.published_on,
+        image: article.imageurl || '',
+        url: article.url || '#'
       }));
 
-      await supabase
-        .from('telegram_posts')
-        .upsert(toSave, { 
-          onConflict: 'title', // Это не даст сохранить одну и ту же новость дважды
-          ignoreDuplicates: true 
-        });
+      // 2. СОХРАНЕНИЕ В SUPABASE (Для Telegram-бота)
+      if (supabaseUrl && supabaseKey && !supabaseUrl.includes('placeholder')) {
+        try {
+          const supabase = createClient(supabaseUrl, supabaseKey);
+          
+          const toSave = data.Data.slice(0, 50).map((n: any) => ({
+            news_id: n.id.toString(),
+            title: n.title,
+            link: n.url,
+            image_url: n.imageurl,
+            body: n.body,
+            categories: n.categories,
+            // ВАЖНО: Мы НЕ указываем message_id: null здесь.
+            // Если новость новая — в БД она создастся с null по умолчанию.
+            // Если новость старая — upsert её не тронет, и существующий message_id (цифры) сохранится.
+          }));
+          
+          // Используем upsert по заголовку (title), чтобы избежать ошибки уникальности
+          const { error } = await supabase
+            .from('telegram_posts')
+            .upsert(toSave, { 
+              onConflict: 'title', 
+              ignoreDuplicates: true 
+            });
+          
+          if (!error) {
+            console.log("--- DB: Новости синхронизированы успешно ---");
+          } else {
+            console.error("--- DB UPSERT ERROR: ---", error.message);
+          }
+        } catch (dbErr) {
+          console.error("--- DB CRITICAL ERROR: ---", dbErr);
+        }
+      }
+
+      // Возвращаем отформатированные статьи для отображения на странице
+      return articles;
     }
-
-    // 3. Возврат данных с проверкой даты
-    return result.results.map((item: any, idx: number) => {
-      const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
-      return {
-        id: item.article_id || `id-${idx}`,
-        title: item.title || 'No title',
-        description: item.description || '',
-        date: pubDate.toLocaleDateString('en-US'),
-        published_on: Math.floor(pubDate.getTime() / 1000),
-        image: item.image_url || `https://loremflickr.com/400/300/crypto?lock=${idx}`,
-        url: item.link,
-        source: item.source_id || 'News'
-      };
-    });
-
-  } catch (err) {
-    console.error("❌ NewsData failed:", err);
-    return getFallbackNews();
+    return [];
+  } catch (error) {
+    console.error("--- GET NEWS ERROR: ---", error);
+    return [];
   }
-}
-
-async function getFallbackNews() {
-  // Логика RSS остается, но на сервере (Vercel) DOMParser не существует.
-  // Если RSS не работает — возвращаем пустой массив или статичную новость.
-  return []; 
 }
