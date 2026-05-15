@@ -8,137 +8,153 @@ export async function translateSingleText(text: string) {
 export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number = 0, category: string = 'ALL') {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  const newsDataApiKey = process.env.NEWDATA_API_KEY;
 
   try {
-    // Попытка 1: cryptocurrency.cv API
-    console.log('🔄 Trying cryptocurrency.cv API...');
-    let url = `https://cryptocurrency.cv/api/v1/news?limit=50`;
-    if (category !== 'ALL') {
-      url += `&filter=${category.toLowerCase()}`;
-    }
+    // NewsData.io API
+    console.log('🔄 Trying NewsData.io API...');
+    
+    // Маппинг категорий
+    const categoryMap: Record<string, string> = {
+      'ALL': '',
+      'BITCOIN': 'bitcoin',
+      'ETHEREUM': 'ethereum',
+      'CRYPTO': 'cryptocurrency'
+    };
+
+    const cryptoCategory = categoryMap[category] || 'cryptocurrency';
+    const query = cryptoCategory ? `${cryptoCategory} crypto` : 'cryptocurrency';
+    
+    const url = `https://newsdata.io/api/1/news?apikey=${newsDataApiKey}&q=${encodeURIComponent(query)}&language=en&category=business,technology`;
 
     const res = await fetch(url, { 
       cache: 'no-store',
-      headers: { 'Accept': 'application/json' },
       next: { revalidate: 300 }
     });
 
     if (!res.ok) {
-      throw new Error(`cryptocurrency.cv returned ${res.status}`);
+      throw new Error(`NewsData.io returned ${res.status}`);
     }
 
     const result = await res.json();
-    console.log('✅ cryptocurrency.cv response:', result);
+    console.log('✅ NewsData.io success:', result.results?.length);
 
-    // Проверяем структуру ответа
-    const rawData = Array.isArray(result) 
-      ? result 
-      : Array.isArray(result.data) 
-        ? result.data 
-        : Array.isArray(result.news)
-          ? result.news
-          : [];
-
-    if (rawData.length === 0) {
-      console.warn('⚠️ cryptocurrency.cv returned empty array, trying fallback...');
-      return await getFallbackNews();
+    if (!result.results || result.results.length === 0) {
+      console.warn('⚠️ NewsData.io returned empty results');
+      return getFallbackNews();
     }
 
-    // Сохраняем в Supabase если настроен
+    // Сохраняем в Supabase
     if (supabaseUrl && supabaseKey) {
       const supabase = createClient(supabaseUrl, supabaseKey);
       
-      const toSave = rawData.map((n: any) => ({
-        news_id: n.id?.toString() || n._id?.toString() || Math.random().toString(36),
-        title: n.title || n.headline || '',
-        link: n.url || n.link || n.source_url || '',
-        image_url: n.image_url || n.image || n.thumbnail || '', 
-        body: n.description || n.body || n.content || n.text || '',
-        categories: n.category || n.categories || category,
-        published_at: n.published_at || n.publishedOn || n.date
-      })).filter(item => item.title && item.link); // Убираем пустые
+      const toSave = result.results.slice(0, 20).map((n: any) => ({
+        news_id: n.article_id || Math.random().toString(36),
+        title: n.title,
+        link: n.link,
+        image_url: n.image_url || '', 
+        body: n.description || '',
+        categories: category,
+        published_at: n.pubDate
+      }));
 
-      if (toSave.length > 0) {
-        await supabase
-          .from('telegram_posts')
-          .upsert(toSave, { onConflict: 'news_id', ignoreDuplicates: true });
-      }
+      await supabase
+        .from('telegram_posts')
+        .upsert(toSave, { onConflict: 'news_id', ignoreDuplicates: true });
     }
 
-    // Маппинг для NewsCard
-    return rawData.map((n: any) => {
-      const pubDate = n.published_at || n.publishedOn || n.date ? new Date(n.published_at || n.publishedOn || n.date) : new Date();
+    // Возвращаем данные для NewsCard
+    return result.results.slice(0, 20).map((item: any, idx: number) => {
+      const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
       return {
-        id: n.id?.toString() || n._id?.toString() || Math.random().toString(36),
-        title: n.title || n.headline || 'No title',
-        description: n.description || n.body || n.content || n.text || '',
+        id: item.article_id || `nd-${idx}`,
+        title: item.title || 'No title',
+        description: item.description || '',
         date: pubDate.toLocaleDateString('en-US'),
         published_on: Math.floor(pubDate.getTime() / 1000),
-        image: n.image_url || n.image || n.thumbnail || '',
-        url: n.url || n.link || n.source_url || '',
-        source: n.source_name || n.source || 'Crypto News'
+        image: item.image_url || `https://loremflickr.com/400/300/crypto?lock=${idx}`,
+        url: item.link,
+        source: item.source_id || item.creator || 'NewsData'
       };
-    }).filter(item => item.title !== 'No title');
+    });
 
   } catch (err) {
-    console.error("❌ cryptocurrency.cv failed:", err);
-    console.log('🔄 Switching to fallback RSS sources...');
-    return await getFallbackNews();
+    console.error("❌ NewsData.io failed:", err);
+    return getFallbackNews();
   }
 }
 
-// Fallback: парсинг RSS лент
+// Fallback на RSS
 async function getFallbackNews() {
+  console.log('🔄 Switching to RSS fallback...');
+  
   try {
-    // Используем RSS2JSON для конвертации RSS в JSON
     const rssFeeds = [
       'https://cointelegraph.com/rss',
-      'https://decrypt.co/feed',
-      'https://www.coindesk.com/arc/outboundfeeds/rss/'
+      'https://decrypt.co/feed'
     ];
 
-    const randomFeed = rssFeeds[Math.floor(Math.random() * rssFeeds.length)];
-    const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(randomFeed)}&count=20`;
+    for (const feedUrl of rssFeeds) {
+      try {
+        const res = await fetch(feedUrl, { next: { revalidate: 600 } });
+        if (!res.ok) continue;
 
-    console.log('📡 Fetching RSS from:', randomFeed);
-    
-    const res = await fetch(apiUrl, { 
-      next: { revalidate: 600 }
-    });
-
-    if (!res.ok) throw new Error('RSS fetch failed');
-
-    const data = await res.json();
-    
-    if (data.status !== 'ok' || !data.items || data.items.length === 0) {
-      throw new Error('RSS returned empty');
-    }
-
-    return data.items.map((item: any, idx: number) => ({
-      id: `rss-${idx}-${Date.now()}`,
-      title: item.title,
-      description: item.description?.replace(/<[^>]*>/g, '').slice(0, 300) || '',
-      date: new Date(item.pubDate).toLocaleDateString('en-US'),
-      published_on: Math.floor(new Date(item.pubDate).getTime() / 1000),
-      image: item.enclosure?.link || item.thumbnail || `https://loremflickr.com/400/300/crypto?lock=${idx}`,
-      url: item.link,
-      source: data.feed?.title || 'Crypto RSS'
-    }));
-
-  } catch (rssErr) {
-    console.error("❌ RSS fallback also failed:", rssErr);
-    // Возвращаем заглушку если всё упало
-    return [
-      {
-        id: 'fallback-1',
-        title: 'Bitcoin Reaches New Heights in 2026',
-        description: 'Crypto market shows strong growth as institutional adoption continues...',
-        date: new Date().toLocaleDateString('en-US'),
-        published_on: Math.floor(Date.now() / 1000),
-        image: 'https://loremflickr.com/400/300/bitcoin',
-        url: 'https://cointelegraph.com',
-        source: 'Fallback News'
+        const text = await res.text();
+        const items = parseRSS(text);
+        
+        if (items.length > 0) {
+          console.log(`✅ RSS success:`, items.length);
+          return items.slice(0, 20);
+        }
+      } catch (err) {
+        continue;
       }
-    ];
+    }
+  } catch (err) {
+    console.error("❌ RSS fallback failed:", err);
   }
+
+  // Заглушка
+  return [
+    {
+      id: 'fallback-1',
+      title: 'Crypto Market Update 2026',
+      description: 'Latest cryptocurrency news and market analysis.',
+      date: new Date().toLocaleDateString('en-US'),
+      published_on: Math.floor(Date.now() / 1000),
+      image: 'https://loremflickr.com/400/300/crypto',
+      url: 'https://cointelegraph.com',
+      source: 'Fallback'
+    }
+  ];
+}
+
+function parseRSS(xml: string) {
+  const items: any[] = [];
+  const parser = new DOMParser();
+  const xmlDoc = parser.parseFromString(xml, 'text/xml');
+  const entries = xmlDoc.querySelectorAll('item, entry');
+  
+  entries.forEach((item, idx) => {
+    const title = item.querySelector('title')?.textContent || '';
+    const link = item.querySelector('link')?.textContent || item.querySelector('link')?.getAttribute('href') || '';
+    const description = item.querySelector('description')?.textContent || '';
+    const pubDate = item.querySelector('pubDate')?.textContent || '';
+    const image = item.querySelector('enclosure')?.getAttribute('url') || `https://loremflickr.com/400/300/crypto?lock=${idx}`;
+
+    if (title && link) {
+      items.push({
+        id: `rss-${idx}-${Date.now()}`,
+        title,
+        description: description.replace(/<[^>]*>/g, '').slice(0, 300),
+        date: pubDate ? new Date(pubDate).toLocaleDateString('en-US') : new Date().toLocaleDateString('en-US'),
+        published_on: pubDate ? Math.floor(new Date(pubDate).getTime() / 1000) : Math.floor(Date.now() / 1000),
+        image,
+        url: link,
+        source: 'RSS Feed'
+      });
+    }
+  });
+
+  return items;
 }
