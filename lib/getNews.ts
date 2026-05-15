@@ -30,10 +30,10 @@ export async function getCryptoNews(lang: string = 'EN', lastTimestamp: number =
     // Ограничиваем тематику, чтобы не лезла политика
     url += `&category=technology,business`;
 
-    const res = await fetch(url, { 
-      cache: 'no-store',
-      next: { revalidate: 300 }
-    });
+    // Замени блок fetch на этот:
+const res = await fetch(url, { 
+  next: { revalidate: 300 } // Обновление раз в 5 минут
+});
 
     if (!res.ok) throw new Error(`NewsData status: ${res.status}`);
 
